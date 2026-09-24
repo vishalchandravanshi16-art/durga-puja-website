@@ -1,61 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  Landmark, 
-  Image as ImageIcon, 
-  BookOpen, 
-  Users, 
-  MessageSquare, 
-  LogOut, 
-  Save, 
-  Trash2, 
-  Edit3, 
-  PlusCircle,
-  DollarSign
+  Landmark, ImageIcon, BookOpen, Users, MessageSquare, 
+  LogOut, PlusCircle, Trash2, Edit3, Save, DollarSign, TrendingUp, TrendingDown 
 } from 'lucide-react';
 
-// Admin Messages Component Placeholder (agar alag se hai toh import kar sakte hain)
-import AdminMessages from './AdminMessages';
-
-export default function AdminDashboard({ onLogout, apiBaseUrl }) {
+export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('expense');
 
-  // State variables for Expense Tab
-  const [expYear, setExpYear] = useState('');
-  const [expCategory, setExpCategory] = useState('');
-  const [expAmount, setExpAmount] = useState('');
-  const [expDescription, setExpDescription] = useState('');
-  const [expMsg, setExpMsg] = useState('');
+  // States for Expense & Income
   const [expenseList, setExpenseList] = useState([]);
+  const [incomeList, setIncomeList] = useState([]);
+  const [expTitle, setExpTitle] = useState('');
+  const [expAmount, setExpAmount] = useState('');
+  const [expCategory, setExpCategory] = useState('General');
+  const [expDate, setExpDate] = useState('');
+  const [expMsg, setExpMsg] = useState('');
 
-  // State variables for Income Tab
-  const [incYear, setIncYear] = useState('');
-  const [incCategory, setIncCategory] = useState('');
+  const [incTitle, setIncTitle] = useState('');
   const [incAmount, setIncAmount] = useState('');
-  const [incSource, setIncSource] = useState('');
+  const [incCategory, setIncCategory] = useState('Donation');
+  const [incDate, setIncDate] = useState('');
   const [incMsg, setIncMsg] = useState('');
 
-  // State variables for Murti Bari Tab
+  // States for Murti Bari
+  const [murtiBariList, setMurtiBariList] = useState([]);
   const [mbYear, setMbYear] = useState('');
   const [mbFamilyName, setMbFamilyName] = useState('');
   const [mbFatherName, setMbFatherName] = useState('');
   const [mbAddress, setMbAddress] = useState('');
-  const [mbStatus, setMbStatus] = useState('Upcoming');
+  const [mbStatus, setMbStatus] = useState('Current');
   const [mbNotes, setMbNotes] = useState('');
   const [mbMsg, setMbMsg] = useState('');
-  const [murtiBariList, setMurtiBariList] = useState([]);
 
-  // State variables for Gallery Tab
+  // States for Gallery
+  const [galleryList, setGalleryList] = useState([]);
   const [galYear, setGalYear] = useState('');
   const [galCategory, setGalCategory] = useState('Maa Durga');
   const [galImageFile, setGalImageFile] = useState(null);
   const [galTitle, setGalTitle] = useState('');
   const [galDesc, setGalDesc] = useState('');
   const [galMsg, setGalMsg] = useState('');
-  const [galleryList, setGalleryList] = useState([]);
 
-  // State variables for History Tab
+  // States for History & Drama
+  const [historyList, setHistoryList] = useState([]);
   const [inputYear, setInputYear] = useState('');
   const [theme, setTheme] = useState('');
   const [director, setDirector] = useState('');
@@ -66,11 +53,11 @@ export default function AdminDashboard({ onLogout, apiBaseUrl }) {
   const [mainCast, setMainCast] = useState('');
   const [description, setDescription] = useState('');
   const [historyImageFile, setHistoryImageFile] = useState(null);
-  const [historyMsg, setHistoryMsg] = useState('');
-  const [historyList, setHistoryList] = useState([]);
   const [editingEventId, setEditingEventId] = useState(null);
+  const [historyMsg, setHistoryMsg] = useState('');
 
-  // State variables for Committee Tab
+  // States for Committee Members
+  const [committeeList, setCommitteeList] = useState([]);
   const [commName, setCommName] = useState('');
   const [commRole, setCommRole] = useState('');
   const [commPhone, setCommPhone] = useState('');
@@ -78,67 +65,161 @@ export default function AdminDashboard({ onLogout, apiBaseUrl }) {
   const [commResponsibility, setCommResponsibility] = useState('');
   const [commOrder, setCommOrder] = useState('');
   const [commImageFile, setCommImageFile] = useState(null);
-  const [commMsg, setCommMsg] = useState('');
-  const [committeeList, setCommitteeList] = useState([]);
   const [editingCommId, setEditingCommId] = useState(null);
+  const [commMsg, setCommMsg] = useState('');
 
-  // Handlers (Dummy/Template placeholders for submit actions)
-  const handleAddExpense = (e) => {
+  // Fetch all initial data on mount
+  useEffect(() => {
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    try {
+      // Yahan aap apne backend endpoints se data fetch kar sakte hain
+      // const resExp = await fetch('/api/expenses');
+      // setExpenseList(await resExp.json());
+      // Baaki APIs bhi isi tarah call hongi
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  // 1. Handle Expense Submit
+  const handleAddExpense = async (e) => {
     e.preventDefault();
-    setExpMsg('Expense saved successfully!');
+    try {
+      const newExpense = { title: expTitle, amount: expAmount, category: expCategory, date: expDate, _id: Date.now().toString() };
+      setExpenseList([newExpense, ...expenseList]);
+      setExpMsg('खर्च सफलतापूर्वक जोड़ा गया!');
+      setExpTitle(''); setExpAmount(''); setExpDate('');
+      setTimeout(() => setExpMsg(''), 3000);
+    } catch (err) {
+      setExpMsg('Error adding expense');
+    }
   };
 
   const handleDeleteExpense = (id) => {
     setExpenseList(expenseList.filter(item => item._id !== id));
   };
 
-  const handleAddIncome = (e) => {
+  // 2. Handle Income Submit
+  const handleAddIncome = async (e) => {
     e.preventDefault();
-    setIncMsg('Income saved successfully!');
+    try {
+      const newIncome = { title: incTitle, amount: incAmount, category: incCategory, date: incDate, _id: Date.now().toString() };
+      setIncomeList([newIncome, ...incomeList]);
+      setIncMsg('आय सफलतापूर्वक जोड़ी गई!');
+      setIncTitle(''); setIncAmount(''); setIncDate('');
+      setTimeout(() => setIncMsg(''), 3000);
+    } catch (err) {
+      setIncMsg('Error adding income');
+    }
   };
 
-  const handleAddMurtiBari = (e) => {
+  const handleDeleteIncome = (id) => {
+    setIncomeList(incomeList.filter(item => item._id !== id));
+  };
+
+  // 3. Handle Murti Bari Submit
+  const handleAddMurtiBari = async (e) => {
     e.preventDefault();
-    setMbMsg('Murti Bari added successfully!');
+    try {
+      const newItem = { year: mbYear, familyName: mbFamilyName, fatherName: mbFatherName, status: mbStatus, _id: Date.now().toString() };
+      setMurtiBariList([newItem, ...murtiBariList]);
+      setMbMsg('मूर्ति बारी सफलतापूर्वक जोड़ी गई!');
+      setMbYear(''); setMbFamilyName(''); setMbFatherName(''); setMbAddress(''); setMbNotes('');
+      setTimeout(() => setMbMsg(''), 3000);
+    } catch (err) {
+      setMbMsg('Error adding Murti Bari');
+    }
   };
 
   const handleDeleteMurtiBari = (id) => {
     setMurtiBariList(murtiBariList.filter(item => item._id !== id));
   };
 
-  const handleAddGalleryPhoto = (e) => {
+  // 4. Handle Gallery Photo Upload
+  const handleAddGalleryPhoto = async (e) => {
     e.preventDefault();
-    setGalMsg('Photo uploaded to gallery successfully!');
+    try {
+      const newPhoto = { 
+        year: galYear, 
+        category: galCategory, 
+        title: galTitle, 
+        description: galDesc, 
+        imageUrl: galImageFile ? URL.createObjectURL(galImageFile) : 'https://via.placeholder.com/150', 
+        _id: Date.now().toString() 
+      };
+      setGalleryList([newPhoto, ...galleryList]);
+      setGalMsg('फोटो गैलरी में सफलतापूर्वक अपलोड हो गई!');
+      setGalYear(''); setGalTitle(''); setGalDesc(''); setGalImageFile(null);
+      setTimeout(() => setGalMsg(''), 3000);
+    } catch (err) {
+      setGalMsg('Error uploading photo');
+    }
   };
 
   const handleDeleteGalleryPhoto = (id) => {
     setGalleryList(galleryList.filter(item => item._id !== id));
   };
 
-  const handleHistorySubmit = (e) => {
+  // 5. Handle History & Drama Submit
+  const handleHistorySubmit = async (e) => {
     e.preventDefault();
-    setHistoryMsg('History / Event saved successfully!');
+    try {
+      if (editingEventId) {
+        setHistoryList(historyList.map(item => item._id === editingEventId ? { ...item, year: inputYear, title: dramaTitle, category, dayNumber } : item));
+        setEditingEventId(null);
+        setHistoryMsg('इतिहास सफलतापूर्वक अपडेट किया गया!');
+      } else {
+        const newEvent = { year: inputYear, title: dramaTitle, category, dayNumber, _id: Date.now().toString() };
+        setHistoryList([newEvent, ...historyList]);
+        setHistoryMsg('इतिहास सफलतापूर्वक जोड़ा गया!');
+      }
+      setInputYear(''); setDramaTitle(''); setDayNumber(''); setDirector(''); setTheme(''); setMainCast(''); setDescription('');
+      setTimeout(() => setHistoryMsg(''), 3000);
+    } catch (err) {
+      setHistoryMsg('Error saving history');
+    }
   };
 
   const handleEditHistoryClick = (item) => {
     setEditingEventId(item._id);
-    setInputYear(item.year);
-    setDramaTitle(item.title);
+    setInputYear(item.year || '');
+    setDramaTitle(item.title || '');
+    setDayNumber(item.dayNumber || '');
+    setCategory(item.category || 'नाटक (Drama)');
   };
 
   const handleDeleteHistory = (id) => {
     setHistoryList(historyList.filter(item => item._id !== id));
   };
 
-  const handleCommitteeSubmit = (e) => {
+  // 6. Handle Committee Member Submit
+  const handleCommitteeSubmit = async (e) => {
     e.preventDefault();
-    setCommMsg('Committee member saved successfully!');
+    try {
+      if (editingCommId) {
+        setCommitteeList(committeeList.map(m => m._id === editingCommId ? { ...m, name: commName, position: commRole, year: commYear } : m));
+        setEditingCommId(null);
+        setCommMsg('कमेटी सदस्य अपडेट हो गया!');
+      } else {
+        const newMember = { name: commName, position: commRole, year: commYear, photo: commImageFile ? URL.createObjectURL(commImageFile) : '', _id: Date.now().toString() };
+        setCommitteeList([newMember, ...committeeList]);
+        setCommMsg('कमेटी सदस्य सफलतापूर्वक जोड़ा गया!');
+      }
+      setCommName(''); setCommRole(''); setCommPhone(''); setCommYear(''); setCommResponsibility(''); setCommOrder(''); setCommImageFile(null);
+      setTimeout(() => setCommMsg(''), 3000);
+    } catch (err) {
+      setCommMsg('Error saving committee member');
+    }
   };
 
   const handleEditCommitteeClick = (member) => {
     setEditingCommId(member._id);
-    setCommName(member.name);
-    setCommRole(member.position);
+    setCommName(member.name || '');
+    setCommRole(member.position || '');
+    setCommYear(member.year || '');
   };
 
   const handleDeleteCommittee = (id) => {
@@ -146,165 +227,163 @@ export default function AdminDashboard({ onLogout, apiBaseUrl }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Top Navbar with Logout */}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Top Navigation Bar with Logout */}
       <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+        <h1 className="text-xl font-bold text-gray-800">Admin Dashboard - पूजा समिति</h1>
         <button 
           onClick={onLogout} 
-          className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 cursor-pointer transition"
+          className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition cursor-pointer"
         >
-          <LogOut className="w-4 h-4" /> Logout
+          <LogOut className="w-4 h-4" /> Logout (लॉग आउट)
         </button>
       </header>
 
-      {/* Tabs Navigation */}
-      <nav className="bg-white border-b px-6 flex overflow-x-auto gap-4 py-2">
-        <button 
-          onClick={() => setActiveTab('expense')} 
-          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'expense' ? 'bg-rose-100 text-rose-700' : 'text-gray-600 hover:bg-gray-100'}`}
-        >
-          Expense (खर्च)
-        </button>
-        <button 
-          onClick={() => setActiveTab('income')} 
-          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'income' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-600 hover:bg-gray-100'}`}
-        >
-          Income (आय)
-        </button>
-        <button 
-          onClick={() => setActiveTab('murtibari')} 
-          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'murtibari' ? 'bg-amber-100 text-amber-700' : 'text-gray-600 hover:bg-gray-100'}`}
-        >
-          Murti Bari (मूर्ति बारी)
-        </button>
-        <button 
-          onClick={() => setActiveTab('gallery')} 
-          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'gallery' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
-        >
-          Gallery (गैलरी)
-        </button>
-        <button 
-          onClick={() => setActiveTab('history')} 
-          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'history' ? 'bg-red-100 text-red-900' : 'text-gray-600 hover:bg-gray-100'}`}
-        >
-          History & Drama (इतिहास)
-        </button>
-        <button 
-          onClick={() => setActiveTab('committee')} 
-          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'committee' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}
-        >
-          Committee (कमेटी)
-        </button>
-        <button 
-          onClick={() => setActiveTab('messages')} 
-          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'messages' ? 'bg-gray-200 text-gray-900' : 'text-gray-600 hover:bg-gray-100'}`}
-        >
-          Messages (संदेश)
-        </button>
+      {/* Tabs Menu */}
+      <nav className="bg-white border-b px-6 flex space-x-4 overflow-x-auto">
+        <button onClick={() => setActiveTab('expense')} className={`py-3 px-4 font-bold text-sm border-b-2 cursor-pointer ${activeTab === 'expense' ? 'border-amber-600 text-amber-600' : 'border-transparent text-gray-600'}`}>खर्च जोड़ें</button>
+        <button onClick={() => setActiveTab('income')} className={`py-3 px-4 font-bold text-sm border-b-2 cursor-pointer ${activeTab === 'income' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-gray-600'}`}>आय जोड़ें</button>
+        <button onClick={() => setActiveTab('murtibari')} className={`py-3 px-4 font-bold text-sm border-b-2 cursor-pointer ${activeTab === 'murtibari' ? 'border-amber-600 text-amber-600' : 'border-transparent text-gray-600'}`}>मूर्ति बारी</button>
+        <button onClick={() => setActiveTab('gallery')} className={`py-3 px-4 font-bold text-sm border-b-2 cursor-pointer ${activeTab === 'gallery' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600'}`}>गैलरी</button>
+        <button onClick={() => setActiveTab('history')} className={`py-3 px-4 font-bold text-sm border-b-2 cursor-pointer ${activeTab === 'history' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-600'}`}>इतिहास व नाटक</button>
+        <button onClick={() => setActiveTab('committee')} className={`py-3 px-4 font-bold text-sm border-b-2 cursor-pointer ${activeTab === 'committee' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-600'}`}>कमेटी</button>
+        <button onClick={() => setActiveTab('messages')} className={`py-3 px-4 font-bold text-sm border-b-2 cursor-pointer ${activeTab === 'messages' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-600'}`}>संदेश</button>
       </nav>
 
-      {/* Main Content Container */}
-      <main className="p-6 flex-1 max-w-7xl w-full mx-auto">
-        
+      {/* Main Content Area */}
+      <main className="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
+
         {/* 1. Expense Tab */}
         {activeTab === 'expense' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
             <div>
-              <h3 className="text-lg font-bold text-rose-600 mb-4 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-amber-600 mb-4 flex items-center gap-2">
                 <TrendingDown className="w-5 h-5" /> खर्च जोड़ें (Add Expense)
               </h3>
-              {expMsg && <p className="text-xs font-bold mb-4 text-rose-600">{expMsg}</p>}
+              {expMsg && <p className="text-xs font-bold mb-4 text-emerald-600">{expMsg}</p>}
               <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">वर्ष (Year)</label>
-                  <input type="text" value={expYear} onChange={(e) => setExpYear(e.target.value)} className="w-full border p-2 rounded text-sm" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category)</label>
-                  <input type="text" value={expCategory} onChange={(e) => setExpCategory(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                  <label className="block text-xs font-bold text-gray-700 mb-1">शीर्षक (Title)</label>
+                  <input type="text" value={expTitle} onChange={(e) => setExpTitle(e.target.value)} className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount)</label>
                   <input type="number" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">विवरण (Description)</label>
-                  <input type="text" value={expDescription} onChange={(e) => setExpDescription(e.target.value)} className="w-full border p-2 rounded text-sm" />
+                  <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category)</label>
+                  <select value={expCategory} onChange={(e) => setExpCategory(e.target.value)} className="w-full border p-2 rounded text-sm">
+                    <option value="General">General</option>
+                    <option value="Decoration">Decoration</option>
+                    <option value="Puja Samagri">Puja Samagri</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">दिनांक (Date)</label>
+                  <input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="w-full border p-2 rounded text-sm" />
                 </div>
                 <div className="md:col-span-2">
-                  <button type="submit" className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Save Expense</button>
+                  <button type="submit" className="bg-amber-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Add Expense</button>
                 </div>
               </form>
             </div>
-
-            {/* Expense Table List */}
+            {/* Expense List Table */}
             <div>
-              <h4 className="text-sm font-bold text-gray-800 mb-3 uppercase">मौजूदा खर्च सूचियाँ ({expenseList.length})</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-rose-50 text-gray-700 text-xs uppercase border-b">
-                      <th className="py-2.5 px-4">वर्ष</th>
-                      <th className="py-2.5 px-4">श्रेणी</th>
-                      <th className="py-2.5 px-4">राशि</th>
-                      <th className="py-2.5 px-4">विवरण</th>
-                      <th className="py-2.5 px-4 text-center">एक्शन</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {expenseList.length === 0 ? (
-                      <tr><td colSpan="5" className="py-4 text-center text-gray-500 text-xs">कोई खर्च रिकॉर्ड उपलब्ध नहीं है।</td></tr>
-                    ) : (
-                      expenseList.map((item) => (
-                        <tr key={item._id} className="hover:bg-rose-50/40">
-                          <td className="py-3 px-4 font-bold text-rose-800">{item.year}</td>
-                          <td className="py-3 px-4 font-semibold text-gray-900">{item.category}</td>
-                          <td className="py-3 px-4 text-gray-600">₹{item.amount}</td>
-                          <td className="py-3 px-4 text-gray-500">{item.description || '-'}</td>
-                          <td className="py-3 px-4 text-center">
-                            <button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white p-1.5 rounded-lg transition cursor-pointer">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <h4 className="text-sm font-bold text-gray-800 mb-3 uppercase">खर्च सूची ({expenseList.length})</h4>
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-amber-50 text-gray-700 text-xs uppercase border-b">
+                    <th className="py-2.5 px-4">शीर्षक</th>
+                    <th className="py-2.5 px-4">राशि</th>
+                    <th className="py-2.5 px-4">श्रेणी</th>
+                    <th className="py-2.5 px-4 text-center">एक्शन</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {expenseList.length === 0 ? (
+                    <tr><td colSpan="4" className="py-4 text-center text-gray-500 text-xs">कोई खर्च रिकॉर्ड नहीं है।</td></tr>
+                  ) : (
+                    expenseList.map((item) => (
+                      <tr key={item._id} className="hover:bg-amber-50/40">
+                        <td className="py-3 px-4 font-bold text-gray-900">{item.title}</td>
+                        <td className="py-3 px-4 text-amber-700 font-semibold">₹{item.amount}</td>
+                        <td className="py-3 px-4 text-gray-600">{item.category}</td>
+                        <td className="py-3 px-4 text-center">
+                          <button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded-lg cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
         {/* 2. Income Tab */}
         {activeTab === 'income' && (
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-bold text-emerald-600 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" /> आय जोड़ें (Add Income)
-            </h3>
-            {incMsg && <p className="text-xs font-bold mb-4 text-emerald-600">{incMsg}</p>}
-            <form onSubmit={handleAddIncome} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">वर्ष (Year)</label>
-                <input type="text" value={incYear} onChange={(e) => setIncYear(e.target.value)} className="w-full border p-2 rounded text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category)</label>
-                <input type="text" value={incCategory} onChange={(e) => setIncCategory(e.target.value)} className="w-full border p-2 rounded text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount)</label>
-                <input type="number" value={incAmount} onChange={(e) => setIncAmount(e.target.value)} className="w-full border p-2 rounded text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">स्त्रोत (Source)</label>
-                <input type="text" value={incSource} onChange={(e) => setIncSource(e.target.value)} className="w-full border p-2 rounded text-sm" />
-              </div>
-              <div className="md:col-span-2">
-                <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Save Income</button>
-              </div>
-            </form>
+          <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
+            <div>
+              <h3 className="text-lg font-bold text-emerald-600 mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" /> आय जोड़ें (Add Income)
+              </h3>
+              {incMsg && <p className="text-xs font-bold mb-4 text-emerald-600">{incMsg}</p>}
+              <form onSubmit={handleAddIncome} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">शीर्षक (Title)</label>
+                  <input type="text" value={incTitle} onChange={(e) => setIncTitle(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount)</label>
+                  <input type="number" value={incAmount} onChange={(e) => setIncAmount(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category)</label>
+                  <select value={incCategory} onChange={(e) => setIncCategory(e.target.value)} className="w-full border p-2 rounded text-sm">
+                    <option value="Donation">Donation</option>
+                    <option value="Chanda">Chanda</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">दिनांक (Date)</label>
+                  <input type="date" value={incDate} onChange={(e) => setIncDate(e.target.value)} className="w-full border p-2 rounded text-sm" />
+                </div>
+                <div className="md:col-span-2">
+                  <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Add Income</button>
+                </div>
+              </form>
+            </div>
+            {/* Income List Table */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-800 mb-3 uppercase">आय सूची ({incomeList.length})</h4>
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="bg-emerald-50 text-gray-700 text-xs uppercase border-b">
+                    <th className="py-2.5 px-4">शीर्षक</th>
+                    <th className="py-2.5 px-4">राशि</th>
+                    <th className="py-2.5 px-4">श्रेणी</th>
+                    <th className="py-2.5 px-4 text-center">एक्शन</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {incomeList.length === 0 ? (
+                    <tr><td colSpan="4" className="py-4 text-center text-gray-500 text-xs">कोई आय रिकॉर्ड नहीं है।</td></tr>
+                  ) : (
+                    incomeList.map((item) => (
+                      <tr key={item._id} className="hover:bg-emerald-50/40">
+                        <td className="py-3 px-4 font-bold text-gray-900">{item.title}</td>
+                        <td className="py-3 px-4 text-emerald-700 font-semibold">₹{item.amount}</td>
+                        <td className="py-3 px-4 text-gray-600">{item.category}</td>
+                        <td className="py-3 px-4 text-center">
+                          <button onClick={() => handleDeleteIncome(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded-lg cursor-pointer"><Trash2 className="w-4 h-4" /></button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -459,7 +538,7 @@ export default function AdminDashboard({ onLogout, apiBaseUrl }) {
                         <p className="text-[11px] text-gray-500 truncate">{item.description || 'No description'}</p>
                       </div>
                       <div className="p-3 pt-0 border-t border-gray-100 mt-2 flex justify-end">
-                        <button onClick={() => handleDeleteGalleryPhoto(item._id)} className="bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white px-3 py-1 rounded-xs text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                        <button onClick={() => handleDeleteGalleryPhoto(item._id)} className="bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white px-3 py-1 rounded text-xs font-bold transition flex items-center gap-1 cursor-pointer">
                           <Trash2 className="w-3.5 h-3.5" /> Delete Photo
                         </button>
                       </div>
@@ -681,7 +760,10 @@ export default function AdminDashboard({ onLogout, apiBaseUrl }) {
         {/* 7. Messages Tab */}
         {activeTab === 'messages' && (
           <div className="bg-white p-6 rounded-xl shadow-sm">
-            <AdminMessages />
+            <h3 className="text-lg font-bold text-indigo-600 mb-4 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5" /> संदेश प्रबंधन (Messages Management)
+            </h3>
+            <p className="text-sm text-gray-600">यहाँ उपयोगकर्ताओं द्वारा भेजे गए संदेश दिखाई देंगे।</p>
           </div>
         )}
 
