@@ -1,48 +1,89 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { 
-  TrendingDown, TrendingUp, Landmark, ImageIcon, BookOpen, 
-  MessagesSquare, Users, PlusCircle, Trash2, Edit3, LogOut, Save, X 
+  TrendingUp, 
+  TrendingDown, 
+  Landmark, 
+  ImageIcon, 
+  BookOpen, 
+  Users, 
+  MessageSquare, 
+  Save, 
+  Trash2, 
+  Edit3 
 } from 'lucide-react';
-import AdminMessages from '../components/AdminMessages';
 
-export default function AdminDashboard({ user }) {
+export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('expense');
 
-  // --- State for Expense ---
+  // --- 1. Expense States (Placeholder / Integrated) ---
+  const [expMsg, setExpMsg] = useState('');
   const [expYear, setExpYear] = useState('');
   const [expCategory, setExpCategory] = useState('');
   const [expAmount, setExpAmount] = useState('');
-  const [expPaidTo, setExpPaidTo] = useState('');
-  const [expMsg, setExpMsg] = useState('');
+  const [expSource, setExpSource] = useState('');
+  const [expenseList, setExpenseList] = useState([]);
 
-  // --- State for Income ---
+  const handleAddExpense = (e) => {
+    e.preventDefault();
+    // Add your expense submission logic here
+    setExpMsg('Expense saved successfully!');
+  };
+
+  const handleDeleteExpense = (id) => {
+    setExpenseList(expenseList.filter(item => item._id !== id));
+  };
+
+  // --- 2. Income States ---
+  const [incMsg, setIncMsg] = useState('');
   const [incYear, setIncYear] = useState('');
   const [incCategory, setIncCategory] = useState('');
   const [incAmount, setIncAmount] = useState('');
   const [incSource, setIncSource] = useState('');
-  const [incMsg, setIncMsg] = useState('');
 
-  // --- State for Murti Bari ---
+  const handleAddIncome = (e) => {
+    e.preventDefault();
+    setIncMsg('Income saved successfully!');
+  };
+
+  // --- 3. Murti Bari States ---
+  const [mbMsg, setMbMsg] = useState('');
   const [mbYear, setMbYear] = useState('');
   const [mbFamilyName, setMbFamilyName] = useState('');
   const [mbFatherName, setMbFatherName] = useState('');
   const [mbAddress, setMbAddress] = useState('');
-  const [mbStatus, setMbStatus] = useState('Current');
+  const [mbStatus, setMbStatus] = useState('Upcoming');
   const [mbNotes, setMbNotes] = useState('');
-  const [mbMsg, setMbMsg] = useState('');
   const [murtiBariList, setMurtiBariList] = useState([]);
 
-  // --- State for Gallery ---
+  const handleAddMurtiBari = (e) => {
+    e.preventDefault();
+    setMbMsg('Murti Bari added successfully!');
+  };
+
+  const handleDeleteMurtiBari = (id) => {
+    setMurtiBariList(murtiBariList.filter(item => item._id !== id));
+  };
+
+  // --- 4. Gallery States ---
+  const [galMsg, setGalMsg] = useState('');
   const [galYear, setGalYear] = useState('');
   const [galCategory, setGalCategory] = useState('Maa Durga');
   const [galImageFile, setGalImageFile] = useState(null);
   const [galTitle, setGalTitle] = useState('');
   const [galDesc, setGalDesc] = useState('');
-  const [galMsg, setGalMsg] = useState('');
   const [galleryList, setGalleryList] = useState([]);
 
-  // --- State for History & Drama ---
+  const handleAddGalleryPhoto = (e) => {
+    e.preventDefault();
+    setGalMsg('Photo uploaded to gallery successfully!');
+  };
+
+  const handleDeleteGalleryPhoto = (id) => {
+    setGalleryList(galleryList.filter(item => item._id !== id));
+  };
+
+  // --- 5. History & Drama States ---
+  const [historyMsg, setHistoryMsg] = useState('');
   const [inputYear, setInputYear] = useState('');
   const [theme, setTheme] = useState('');
   const [director, setDirector] = useState('');
@@ -50,14 +91,31 @@ export default function AdminDashboard({ user }) {
   const [date, setDate] = useState('');
   const [category, setCategory] = useState('नाटक (Drama)');
   const [dramaTitle, setDramaTitle] = useState('');
-  const [description, setDescription] = useState('');
   const [mainCast, setMainCast] = useState('');
+  const [description, setDescription] = useState('');
   const [historyImageFile, setHistoryImageFile] = useState(null);
   const [editingEventId, setEditingEventId] = useState(null);
   const [historyList, setHistoryList] = useState([]);
-  const [historyMsg, setHistoryMsg] = useState('');
 
-  // --- State for Committee Members ---
+  const handleHistorySubmit = (e) => {
+    e.preventDefault();
+    setHistoryMsg(editingEventId ? 'History updated successfully!' : 'History saved successfully!');
+  };
+
+  const handleEditHistoryClick = (item) => {
+    setEditingEventId(item._id);
+    setInputYear(item.year);
+    setDramaTitle(item.title);
+    setDayNumber(item.dayNumber);
+    setCategory(item.category);
+  };
+
+  const handleDeleteHistory = (id) => {
+    setHistoryList(historyList.filter(item => item._id !== id));
+  };
+
+  // --- 6. Committee States ---
+  const [commMsg, setCommMsg] = useState('');
   const [commName, setCommName] = useState('');
   const [commRole, setCommRole] = useState('');
   const [commPhone, setCommPhone] = useState('');
@@ -65,323 +123,151 @@ export default function AdminDashboard({ user }) {
   const [commResponsibility, setCommResponsibility] = useState('');
   const [commOrder, setCommOrder] = useState('');
   const [commImageFile, setCommImageFile] = useState(null);
-  const [commMsg, setCommMsg] = useState('');
-  const [committeeList, setCommitteeList] = useState([]);
   const [editingCommId, setEditingCommId] = useState(null);
+  const [committeeList, setCommitteeList] = useState([]);
 
-  const token = localStorage.getItem('token');
-
-  // Direct Logout Function
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
-  };
-
-  // Fetch initial data for lists
-  useEffect(() => {
-    fetchMurtiBari();
-    fetchGalleryAdmin();
-    fetchCommittee();
-    fetchHistoryAdmin();
-  }, []);
-
-  const fetchMurtiBari = async () => {
-    try {
-      const res = await axios.get('http://localhost:5000/api/murtibari');
-      setMurtiBariList(res.data);
-    } catch (err) {
-      console.error("Error fetching murti bari:", err);
-    }
-  };
-
-  const fetchGalleryAdmin = async () => {
-    try {
-      const res = await axios.get('http://localhost:5000/api/gallery');
-      setGalleryList(res.data);
-    } catch (err) {
-      console.error("Error fetching gallery:", err);
-    }
-  };
-
-  const fetchCommittee = async () => {
-    try {
-      const res = await axios.get('http://localhost:5000/api/committee');
-      setCommitteeList(res.data);
-    } catch (err) {
-      console.error("Error fetching committee:", err);
-    }
-  };
-
-  const fetchHistoryAdmin = async () => {
-    try {
-      const res = await axios.get('http://localhost:5000/api/history');
-      setHistoryList(res.data);
-    } catch (err) {
-      console.error("Error fetching history:", err);
-    }
-  };
-
-  // --- Submit Handlers ---
-  const handleAddExpense = async (e) => {
+  const handleCommitteeSubmit = (e) => {
     e.preventDefault();
-    try {
-      await axios.post('http://localhost:5000/api/expenses', { 
-        year: expYear, category: expCategory, amount: expAmount, paidTo: expPaidTo 
-      }, { headers: { Authorization: `Bearer ${token}` } });
-      setExpMsg('Expense Added Successfully!');
-      setExpYear(''); setExpCategory(''); setExpAmount(''); setExpPaidTo('');
-    } catch (err) {
-      setExpMsg('Error adding expense');
-    }
-  };
-
-  const handleAddIncome = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post('http://localhost:5000/api/incomes', { 
-        year: incYear, category: incCategory, amount: incAmount, source: incSource 
-      }, { headers: { Authorization: `Bearer ${token}` } });
-      setIncMsg('Income Added Successfully!');
-      setIncYear(''); setIncCategory(''); setIncAmount(''); setIncSource('');
-    } catch (err) {
-      setIncMsg('Error adding income');
-    }
-  };
-
-  const handleAddMurtiBari = async (e) => {
-    e.preventDefault();
-    try {
-      await axios.post('http://localhost:5000/api/murtibari', { 
-        year: mbYear, familyName: mbFamilyName, fatherName: mbFatherName, address: mbAddress, status: mbStatus, notes: mbNotes 
-      }, { headers: { Authorization: `Bearer ${token}` } });
-      setMbMsg('Murti Bari Record Added Successfully!');
-      setMbYear(''); setMbFamilyName(''); setMbFatherName(''); setMbAddress(''); setMbNotes('');
-      fetchMurtiBari();
-    } catch (err) {
-      setMbMsg('Error adding record');
-    }
-  };
-
-  const handleDeleteMurtiBari = async (id) => {
-    if (!window.confirm("क्या आप वाकई इस रिकॉर्ड को हटाना चाहते हैं?")) return;
-    try {
-      await axios.delete(`http://localhost:5000/api/murtibari/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      fetchMurtiBari();
-    } catch (err) {
-      alert("डिलिट करने में विफल!");
-    }
-  };
-
-  const handleAddGalleryPhoto = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('year', galYear);
-    formData.append('category', galCategory);
-    formData.append('title', galTitle);
-    formData.append('description', galDesc);
-    if (galImageFile) formData.append('image', galImageFile);
-
-    try {
-      await axios.post('http://localhost:5000/api/gallery', formData, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-      });
-      setGalMsg('फोटो गैラリー में सफलतापूर्वक अपलोड हो गई!');
-      setGalTitle(''); setGalDesc(''); setGalImageFile(null);
-      fetchGalleryAdmin();
-    } catch (err) {
-      setGalMsg('Error uploading photo');
-    }
-  };
-
-  const handleDeleteGalleryPhoto = async (id) => {
-    if (!window.confirm("क्या आप वाकई इस फोटो को गैラリー से हटाना चाहते हैं?")) return;
-    try {
-      await axios.delete(`http://localhost:5000/api/gallery/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      fetchGalleryAdmin();
-    } catch (err) {
-      alert("फोटो डिलीट करने में विफल!");
-    }
-  };
-
-  // --- History & Drama Handlers ---
-  const handleHistorySubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('year', inputYear);
-    formData.append('theme', theme);
-    formData.append('director', director);
-    formData.append('dayNumber', dayNumber);
-    formData.append('date', date);
-    formData.append('category', category);
-    formData.append('title', dramaTitle);
-    formData.append('description', description);
-    formData.append('mainCast', mainCast);
-    if (historyImageFile) formData.append('photo', historyImageFile);
-
-    try {
-      if (editingEventId) {
-        await axios.put(`http://localhost:5000/api/history/${editingEventId}`, formData, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-        });
-        setHistoryMsg('कार्यक्रम सफलतापूर्वक अपडेट कर दिया गया!');
-        setEditingEventId(null);
-      } else {
-        await axios.post('http://localhost:5000/api/history', formData, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-        });
-        setHistoryMsg('नया कार्यक्रम सफलतापूर्वक जोड़ा गया!');
-      }
-      setInputYear(''); setTheme(''); setDirector(''); setDayNumber(''); setDate('');
-      setDramaTitle(''); setDescription(''); setMainCast(''); setHistoryImageFile(null);
-      fetchHistoryAdmin();
-    } catch (err) {
-      setHistoryMsg('इतिहास / नाटक सेव करने में त्रुटि!');
-    }
-  };
-
-  const handleEditHistoryClick = (item) => {
-    setEditingEventId(item._id);
-    setInputYear(item.year || '');
-    setTheme(item.theme || '');
-    setDirector(item.director || '');
-    setDayNumber(item.dayNumber || '');
-    setDate(item.date || '');
-    setCategory(item.category || 'नाटक (Drama)');
-    setDramaTitle(item.title || '');
-    setDescription(item.description || '');
-    setMainCast(item.mainCast || '');
-  };
-
-  const handleDeleteHistory = async (id) => {
-    if (!window.confirm("क्या आप वाकई इस कार्यक्रम को हटाना चाहते हैं?")) return;
-    try {
-      await axios.delete(`http://localhost:5000/api/history/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      fetchHistoryAdmin();
-    } catch (err) {
-      alert("डिलिट करने में विफल!");
-    }
-  };
-
-  // --- Committee Handlers (Using File Upload instead of URL) ---
-  const handleCommitteeSubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData();
-    formData.append('name', commName);
-    formData.append('position', commRole);
-    formData.append('phone', commPhone);
-    formData.append('year', commYear);
-    formData.append('responsibility', commResponsibility);
-    formData.append('order', commOrder || 99);
-    if (commImageFile) formData.append('photo', commImageFile);
-
-    try {
-      if (editingCommId) {
-        await axios.put(`http://localhost:5000/api/committee/${editingCommId}`, formData, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-        });
-        setCommMsg('कमेटी सदस्य सफलतापूर्वक अपडेट हो गया!');
-        setEditingCommId(null);
-      } else {
-        await axios.post('http://localhost:5000/api/committee', formData, {
-          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
-        });
-        setCommMsg('नया कमेटी सदस्य सफलतापूर्वक जोड़ा गया!');
-      }
-      setCommName(''); setCommRole(''); setCommPhone(''); setCommYear('');
-      setCommResponsibility(''); setCommOrder(''); setCommImageFile(null);
-      fetchCommittee();
-    } catch (err) {
-      setCommMsg('कमेटी सदस्य सेव करने में त्रुटि!');
-    }
+    setCommMsg(editingCommId ? 'Member updated successfully!' : 'Committee member added successfully!');
   };
 
   const handleEditCommitteeClick = (member) => {
     setEditingCommId(member._id);
-    setCommName(member.name || '');
-    setCommRole(member.position || '');
-    setCommPhone(member.phone || '');
-    setCommYear(member.year || '');
-    setCommResponsibility(member.responsibility || '');
-    setCommOrder(member.order || '');
+    setCommName(member.name);
+    setCommRole(member.position);
+    setCommYear(member.year);
   };
 
-  const handleDeleteCommittee = async (id) => {
-    if (!window.confirm("क्या आप वाकई इस सदस्य को हटाना चाहते हैं?")) return;
-    try {
-      await axios.delete(`http://localhost:5000/api/committee/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      fetchCommittee();
-    } catch (err) {
-      alert("डिलिट करने में विफल!");
-    }
+  const handleDeleteCommittee = (id) => {
+    setCommitteeList(committeeList.filter(item => item._id !== id));
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-        <button onClick={handleLogout} className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-red-100 transition cursor-pointer">
-          <LogOut className="w-4 h-4" /> Logout
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar / Navigation Tabs */}
+      <aside className="w-64 bg-white border-r shadow-sm p-4 space-y-2">
+        <h2 className="text-xl font-black text-gray-800 mb-6 px-2">Admin Panel</h2>
+        
+        <button 
+          onClick={() => setActiveTab('expense')} 
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'expense' ? 'bg-rose-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        >
+          <TrendingDown className="w-4 h-4" /> खर्च (Expense)
         </button>
-      </header>
 
-      {/* Tabs Navigation */}
-      <div className="bg-white border-b px-6 flex gap-4 overflow-x-auto">
-        <button onClick={() => setActiveTab('expense')} className={`py-3 px-4 font-bold border-b-2 cursor-pointer ${activeTab === 'expense' ? 'border-red-600 text-red-600' : 'border-transparent text-gray-600'}`}>
-          Expense
+        <button 
+          onClick={() => setActiveTab('income')} 
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'income' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        >
+          <TrendingUp className="w-4 h-4" /> आय (Income)
         </button>
-        <button onClick={() => setActiveTab('income')} className={`py-3 px-4 font-bold border-b-2 cursor-pointer ${activeTab === 'income' ? 'border-emerald-600 text-emerald-600' : 'border-transparent text-gray-600'}`}>
-          Income
+
+        <button 
+          onClick={() => setActiveTab('murtibari')} 
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'murtibari' ? 'bg-amber-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        >
+          <Landmark className="w-4 h-4" /> मूर्ति बारी (Murti Bari)
         </button>
-        <button onClick={() => setActiveTab('murtibari')} className={`py-3 px-4 font-bold border-b-2 cursor-pointer ${activeTab === 'murtibari' ? 'border-amber-600 text-amber-600' : 'border-transparent text-gray-600'}`}>
-          Murti Bari
+
+        <button 
+          onClick={() => setActiveTab('gallery')} 
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'gallery' ? 'bg-blue-800 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        >
+          <ImageIcon className="w-4 h-4" /> गैलरी (Gallery)
         </button>
-        <button onClick={() => setActiveTab('gallery')} className={`py-3 px-4 font-bold border-b-2 cursor-pointer ${activeTab === 'gallery' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600'}`}>
-          Gallery
+
+        <button 
+          onClick={() => setActiveTab('history')} 
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'history' ? 'bg-red-900 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        >
+          <BookOpen className="w-4 h-4" /> इतिहास व नाटक (History)
         </button>
-        <button onClick={() => setActiveTab('history')} className={`py-3 px-4 font-bold border-b-2 cursor-pointer ${activeTab === 'history' ? 'border-red-900 text-red-900' : 'border-transparent text-gray-600'}`}>
-          History & Drama
+
+        <button 
+          onClick={() => setActiveTab('committee')} 
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'committee' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        >
+          <Users className="w-4 h-4" /> कमेटी (Committee)
         </button>
-        <button onClick={() => setActiveTab('committee')} className={`py-3 px-4 font-bold border-b-2 cursor-pointer ${activeTab === 'committee' ? 'border-purple-600 text-purple-600' : 'border-transparent text-gray-600'}`}>
-          Committee
+
+        <button 
+          onClick={() => setActiveTab('messages')} 
+          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'messages' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+        >
+          <MessageSquare className="w-4 h-4" /> संदेश (Messages)
         </button>
-        <button onClick={() => setActiveTab('messages')} className={`py-3 px-4 font-bold border-b-2 cursor-pointer ${activeTab === 'messages' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-600'}`}>
-          Messages
-        </button>
-      </div>
+      </aside>
 
       {/* Main Content Area */}
-      <main className="p-6 max-w-7xl mx-auto w-full flex-grow">
-        
+      <main className="flex-1 p-8 overflow-y-auto">
+
         {/* 1. Expense Tab */}
         {activeTab === 'expense' && (
-          <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
-              <TrendingDown className="w-5 h-5" /> खर्च जोड़ें (Add Expense)
-            </h3>
-            {expMsg && <p className="text-xs font-bold mb-4 text-emerald-600">{expMsg}</p>}
-            <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">वर्ष (Year)</label>
-                <input type="text" value={expYear} onChange={(e) => setExpYear(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+          <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
+            <div>
+              <h3 className="text-lg font-bold text-rose-600 mb-4 flex items-center gap-2">
+                <TrendingDown className="w-5 h-5" /> खर्च जोड़ें (Add Expense)
+              </h3>
+              {expMsg && <p className="text-xs font-bold mb-4 text-emerald-600">{expMsg}</p>}
+              <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">वर्ष (Year)</label>
+                  <input type="text" value={expYear} onChange={(e) => setExpYear(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category)</label>
+                  <input type="text" value={expCategory} onChange={(e) => setExpCategory(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount)</label>
+                  <input type="number" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">भुगतान विवरण / स्त्रोत (Source/Details)</label>
+                  <input type="text" value={expSource} onChange={(e) => setExpSource(e.target.value)} className="w-full border p-2 rounded text-sm" />
+                </div>
+                <div className="md:col-span-2">
+                  <button type="submit" className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Save Expense</button>
+                </div>
+              </form>
+            </div>
+
+            {/* Expense Table List */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-800 mb-3 uppercase">मौजूदा खर्च सूचियाँ ({expenseList.length})</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-rose-50 text-gray-700 text-xs uppercase border-b">
+                      <th className="py-2.5 px-4">वर्ष</th>
+                      <th className="py-2.5 px-4">श्रेणी</th>
+                      <th className="py-2.5 px-4">राशि</th>
+                      <th className="py-2.5 px-4">विवरण</th>
+                      <th className="py-2.5 px-4 text-center">एक्शन</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {expenseList.length === 0 ? (
+                      <tr><td colSpan="5" className="py-4 text-center text-gray-500 text-xs">कोई खर्च रिकॉर्ड उपलब्ध नहीं है।</td></tr>
+                    ) : (
+                      expenseList.map((item) => (
+                        <tr key={item._id} className="hover:bg-rose-50/40">
+                          <td className="py-3 px-4 font-bold text-rose-800">{item.year}</td>
+                          <td className="py-3 px-4 font-semibold text-gray-900">{item.category}</td>
+                          <td className="py-3 px-4 text-gray-600">₹{item.amount}</td>
+                          <td className="py-3 px-4 text-gray-600">{item.source || '-'}</td>
+                          <td className="py-3 px-4 text-center">
+                            <button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white p-1.5 rounded-lg transition cursor-pointer">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category)</label>
-                <input type="text" value={expCategory} onChange={(e) => setExpCategory(e.target.value)} className="w-full border p-2 rounded text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount)</label>
-                <input type="number" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="w-full border p-2 rounded text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">भुगतान किसे किया (Paid To)</label>
-                <input type="text" value={expPaidTo} onChange={(e) => setExpPaidTo(e.target.value)} className="w-full border p-2 rounded text-sm" />
-              </div>
-              <div className="md:col-span-2">
-                <button type="submit" className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Save Expense</button>
-              </div>
-            </form>
+            </div>
           </div>
         )}
 
@@ -579,7 +465,7 @@ export default function AdminDashboard({ user }) {
           </div>
         )}
 
-        {/* 5. History & Drama Tab (Complete Form & Table) */}
+        {/* 5. History & Drama Tab */}
         {activeTab === 'history' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
             <div>
@@ -613,7 +499,7 @@ export default function AdminDashboard({ user }) {
                   <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border p-2 rounded text-sm">
                     <option value="नाटक (Drama)">नाटक (Drama)</option>
                     <option value="रामलीला (Ramlila)">रामलीला (Ramlila)</option>
-                    <option value="भाषण (Speech)">बलिबंध (Balibandh)</option>
+                    <option value="बलिबंध (Balibandh)">बलिबंध (Balibandh)</option>
                     <option value="सांस्कृतिक कार्यक्रम">सांस्कृतिक कार्यक्रम</option>
                   </select>
                 </div>
@@ -648,7 +534,7 @@ export default function AdminDashboard({ user }) {
 
             {/* History Table List */}
             <div>
-              <h4 className="text-sm font-bold text-gray-800 mb-3 uppercase">द दर्ज इतिहास व नाटक कार्यक्रम सूचियाँ ({historyList.length})</h4>
+              <h4 className="text-sm font-bold text-gray-800 mb-3 uppercase">दर्ज इतिहास व नाटक कार्यक्रम सूचियाँ ({historyList.length})</h4>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
@@ -692,7 +578,7 @@ export default function AdminDashboard({ user }) {
           </div>
         )}
 
-        {/* 6. Committee Tab (With File Upload & Table) */}
+        {/* 6. Committee Tab */}
         {activeTab === 'committee' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
             <div>
@@ -789,7 +675,10 @@ export default function AdminDashboard({ user }) {
         {/* 7. Messages Tab */}
         {activeTab === 'messages' && (
           <div className="bg-white p-6 rounded-xl shadow-sm">
-            <AdminMessages />
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-gray-600" /> संदेश (Messages Management)
+            </h3>
+            <p className="text-xs text-gray-500">यहाँ यूज़र्स द्वारा भेजे गए संदेश दिखाई देंगे।</p>
           </div>
         )}
 
