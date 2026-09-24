@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Drama, Sparkles, User, Award, ChevronRight, Clock, Star, ShieldCheck } from 'lucide-react';
-import axios from 'axios';
+import API from '../services/api'; // Shared API instance
 
-export default function PujaHistroy() {
+export default function PujaHistory() {
   const [historyList, setHistoryList] = useState([]);
   const [selectedYear, setSelectedYear] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -11,7 +11,7 @@ export default function PujaHistroy() {
     const fetchHistoryData = async () => {
       try {
         console.log("Fetching history data from backend...");
-        const response = await axios.get('http://localhost:5000/api/history');
+        const response = await API.get('/history');
         console.log("API Response Data:", response.data);
         
         const data = response.data;
@@ -78,7 +78,7 @@ export default function PujaHistroy() {
   const currentYearItems = historyList.filter(item => Number(item.year) === Number(selectedYear));
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-2 sm:px-4 py-4">
+    <div className="space-y-8 max-w-7xl mx-auto px-2 sm:px-4 py-4 font-sans">
       {/* Header Banner */}
       <section className="bg-gradient-to-r from-amber-950 via-red-950 to-amber-900 rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-amber-500/30 text-center relative overflow-hidden">
         <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
@@ -105,7 +105,7 @@ export default function PujaHistroy() {
               <button
                 key={yr}
                 onClick={() => setSelectedYear(yr)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 shadow-md ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm sm:text-base transition-all duration-300 shadow-md cursor-pointer ${
                   Number(selectedYear) === Number(yr)
                     ? 'bg-amber-400 text-amber-950 scale-105 shadow-amber-400/20'
                     : 'bg-black/40 hover:bg-black/60 text-amber-200 border border-amber-500/30'
@@ -170,9 +170,10 @@ export default function PujaHistroy() {
                     {day.photo && (
                       <div className="mb-5 overflow-hidden rounded-xl border border-amber-200 shadow-sm">
                         <img 
-                          src={day.photo.startsWith('http') ? day.photo : `http://localhost:5000${day.photo}`} 
+                          src={day.photo} 
                           alt={titleVal || "Karyakram Photo"} 
                           className="w-full h-60 sm:h-80 object-cover hover:scale-105 transition-transform duration-500"
+                          onError={(e)=>{e.target.src='https://via.placeholder.com/600x400?text=Image+Not+Found'}}
                         />
                       </div>
                     )}
@@ -267,7 +268,7 @@ export default function PujaHistroy() {
                     <button
                       key={yr}
                       onClick={() => setSelectedYear(yr)}
-                      className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-between ${
+                      className={`w-full text-left p-3.5 rounded-xl border transition-all duration-200 flex items-center justify-between cursor-pointer ${
                         isActive 
                           ? 'bg-gradient-to-r from-amber-900 to-red-950 text-white border-amber-500 shadow-md' 
                           : 'bg-gray-50 hover:bg-amber-50 text-gray-800 border-gray-200'
