@@ -16,11 +16,40 @@ export default function FinancialReport() {
   // Check if admin is logged in based on token existence
   const isAdmin = Boolean(localStorage.getItem('token'));
 
+  // Robust Year Extraction Helper (Handles DD-MM-YYYY, YYYY-MM-DD, and numbers)
+  const extractYear = (item) => {
+    if (item.year) {
+      const yr = Number(item.year);
+      if (!isNaN(yr) && yr > 2000 && yr < 2100) return yr;
+    }
+    if (item.date) {
+      if (typeof item.date === 'string' && item.date.includes('-')) {
+        const parts = item.date.split('-');
+        if (parts.length === 3) {
+          if (parts[2].length === 4) {
+            const yr = Number(parts[2]);
+            if (!isNaN(yr)) return yr;
+          }
+          if (parts[0].length === 4) {
+            const yr = Number(parts[0]);
+            if (!isNaN(yr)) return yr;
+          }
+        }
+      }
+      const d = new Date(item.date);
+      if (!isNaN(d.getFullYear())) return d.getFullYear();
+    }
+    if (item.createdAt) {
+      const d = new Date(item.createdAt);
+      if (!isNaN(d.getFullYear())) return d.getFullYear();
+    }
+    return new Date().getFullYear();
+  };
+
   // Data Fetching Function with Dynamic Years Extraction
   const fetchFinancialsData = async () => {
     setLoading(true);
     try {
-      // API instance ka use karke incomes aur expenses fetch karein
       const [incomeRes, expenseRes] = await Promise.all([
         API.get('/incomes').catch(() => ({ data: [] })),
         API.get('/expenses').catch(() => ({ data: [] }))
@@ -33,26 +62,18 @@ export default function FinancialReport() {
       const extractedYears = new Set([2026, 2025, 2024, 2023]);
       
       [...rawIncomes, ...rawExpenses].forEach(item => {
-        const yr = item.year ? Number(item.year) : new Date(item.date || item.createdAt).getFullYear();
+        const yr = extractYear(item);
         if (!isNaN(yr) && yr > 2000 && yr < 2100) {
           extractedYears.add(yr);
         }
       });
 
-      // Saalon ko descending order me sort karna
       const sortedYears = Array.from(extractedYears).sort((a, b) => b - a);
       setAllYears(sortedYears);
 
       // Selected year ke mutabiq data filter karna
-      const filteredIncomes = rawIncomes.filter(item => {
-        const itemYear = item.year ? Number(item.year) : new Date(item.date || item.createdAt).getFullYear();
-        return Number(itemYear) === Number(selectedYear);
-      });
-
-      const filteredExpenses = rawExpenses.filter(item => {
-        const itemYear = item.year ? Number(item.year) : new Date(item.date || item.createdAt).getFullYear();
-        return Number(itemYear) === Number(selectedYear);
-      });
+      const filteredIncomes = rawIncomes.filter(item => Number(extractYear(item)) === Number(selectedYear));
+      const filteredExpenses = rawExpenses.filter(item => Number(extractYear(item)) === Number(selectedYear));
 
       setIncomeList(filteredIncomes);
       setExpenseList(filteredExpenses);
@@ -79,8 +100,6 @@ export default function FinancialReport() {
 
     try {
       await API.delete(endpoint);
-      
-      // Refresh data after successful deletion
       fetchFinancialsData();
     } catch (error) {
       console.error("Delete Error:", error);
@@ -111,7 +130,7 @@ export default function FinancialReport() {
     }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const filteredTransactions = allTransactions.item ? allTransactions : allTransactions.filter(item => {
+  const filteredTransactions = allTransactions.filter(item => {
     if (activeTab === 'income') return item.type === 'income';
     if (activeTab === 'expense') return item.type === 'expense';
     return true;
