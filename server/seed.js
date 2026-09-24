@@ -51,11 +51,11 @@ const seedData = async () => {
       { name: 'Manoj Singh', position: 'सदस्य / Member', responsibility: 'Decoration & Lights', phone: '+91 9876543216', year: 2026, order: 7, photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300' }
     ]);
 
-    // Financial Records 2026
+    // Financial Records 2026 (Updated with category)
     await Income.create([
-      { year: 2026, source: 'Chanda Collection', donorName: 'Gram Niwasi Collective', amount: 120000, description: 'Door-to-door village donation' },
-      { year: 2026, source: 'Sponsorship', donorName: 'Local Hardware Store', amount: 25000, description: 'Banner sponsorship' },
-      { year: 2026, source: 'Special Donation', donorName: 'Choudhary Family', amount: 15000, description: 'Bhandara contribution' }
+      { year: 2026, category: 'Donation', source: 'Chanda Collection', donorName: 'Gram Niwasi Collective', amount: 120000, description: 'Door-to-door village donation' },
+      { year: 2026, category: 'Sponsorship', source: 'Sponsorship', donorName: 'Local Hardware Store', amount: 25000, description: 'Banner sponsorship' },
+      { year: 2026, category: 'Donation', source: 'Special Donation', donorName: 'Choudhary Family', amount: 15000, description: 'Bhandara contribution' }
     ]);
 
     await Expense.create([
