@@ -3,10 +3,11 @@ import Income from '../models/Income.js';
 // Get Income by Year or All Incomes
 export const getIncomeByYear = async (req, res) => {
   try {
-    const { year } = req.params;
+    const year = req.params.year || req.query.year;
     let query = {};
     if (year) {
-      query.year = year;
+      // Dono string aur number formats ko match karne ke liye
+      query.$or = [{ year: year }, { year: Number(year) }];
     }
     const incomes = await Income.find(query).sort({ createdAt: -1 });
     res.status(200).json(incomes);
