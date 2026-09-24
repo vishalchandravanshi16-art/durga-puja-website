@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { loginAdmin } from '../api'; // api.js se loginAdmin import kiya gaya hai
 
 export default function Login({ setAuthToken }) {
   const [email, setEmail] = useState('');
@@ -11,8 +11,8 @@ export default function Login({ setAuthToken }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Backend login endpoint (apne route ke hisaab se URL check kar lein)
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      // Ab ye live Render URL (api.js) ke through request bhejaega
+      const res = await loginAdmin({ email, password });
       
       // Token aur user details localStorage me save karein
       localStorage.setItem('token', res.data.token);
