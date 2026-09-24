@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../services/api'; // Shared API instance import kiya gaya hai
 
 export default function Gallery() {
   const [years, setYears] = useState([]);
@@ -14,7 +14,7 @@ export default function Gallery() {
   const fetchGalleryData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://localhost:5000/api/gallery');
+      const res = await API.get('/gallery');
       let allPhotos = res.data;
 
       // Filter logic (Year aur Category ke anusar)
@@ -61,7 +61,7 @@ export default function Gallery() {
             <button
               key={cat}
               onClick={() => setSelectedCat(cat)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-sm ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-sm cursor-pointer ${
                 selectedCat === cat 
                   ? 'bg-red-800 text-white' 
                   : 'bg-white text-gray-700 hover:bg-amber-100 border border-amber-200'
@@ -75,7 +75,7 @@ export default function Gallery() {
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
-          className="bg-white border border-amber-300 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="bg-white border border-amber-300 rounded-lg px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
         >
           <option value="">सभी वर्ष / All Years</option>
           {years.map(y => <option key={y.year} value={y.year}>{y.year}</option>)}
