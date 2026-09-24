@@ -8,7 +8,9 @@ const Committee = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/committee');
+        // Backend URL configuration (Production ke liye environment variable ya relative path)
+        const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+        const res = await axios.get(`${API_BASE_URL}/api/committee`);
         setCommitteeMembers(res.data);
         setLoading(false);
       } catch (err) {
@@ -53,13 +55,12 @@ const Committee = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {committeeMembers.map((member, index) => {
-              // Database se aane wale image path ko clean aur correct URL banane ke liye logic
               let imagePath = member.photo || member.image || "";
-              // Agar path me backslash hai toh use forward slash me badal dein
               imagePath = imagePath.replace(/\\/g, '/');
               
+              const API_BASE_URL = process.env.REACT_APP_API_URL || '';
               const imageUrl = imagePath 
-                ? (imagePath.startsWith('http') ? imagePath : `http://localhost:5000/${imagePath.replace(/^\/+/, '')}`)
+                ? (imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}/${imagePath.replace(/^\/+/, '')}`)
                 : "https://via.placeholder.com/150/1e293b/f59e0b?text=Member";
 
               return (
