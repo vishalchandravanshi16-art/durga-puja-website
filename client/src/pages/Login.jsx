@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginAdmin } from '../api'; // Agar api.js src folder me hai to ise './api' bhi kar sakte hain agar zaroorat ho
+import { loginAdmin } from '../services/api'; // Yaha path theek kar diya gaya hai
 
 export default function Login({ setAuthToken }) {
   const [email, setEmail] = useState('');
@@ -10,17 +10,15 @@ export default function Login({ setAuthToken }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setErrorMsg(''); // Purana error clear karein
+    setErrorMsg('');
     try {
       const res = await loginAdmin({ email, password });
       
-      // Token aur user details localStorage me save karein
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       
       if (setAuthToken) setAuthToken(res.data.token);
       
-      // Login hone ke baad Admin Dashboard par redirect karein
       navigate('/admin');
     } catch (err) {
       console.error('Login Frontend Error:', err);
