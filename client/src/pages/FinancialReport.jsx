@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../services/api'; // api.js ko import kiya gaya hai
 import { TrendingUp, TrendingDown, Wallet, Calendar, Trash2 } from 'lucide-react';
 
 export default function FinancialReport() {
@@ -20,17 +20,17 @@ export default function FinancialReport() {
   const fetchFinancialsData = async () => {
     setLoading(true);
     try {
-      // Saare incomes aur expenses ek sath fetch karein taaki sabhi saalon ke years nikal sakein
+      // API instance ka use karke incomes aur expenses fetch karein
       const [incomeRes, expenseRes] = await Promise.all([
-        axios.get(`http://localhost:5000/api/incomes`).catch(() => ({ data: [] })),
-        axios.get(`http://localhost:5000/api/expenses`).catch(() => ({ data: [] }))
+        API.get('/incomes').catch(() => ({ data: [] })),
+        API.get('/expenses').catch(() => ({ data: [] }))
       ]);
 
       const rawIncomes = Array.isArray(incomeRes.data) ? incomeRes.data : (incomeRes.data.incomes || incomeRes.data.data || []);
       const rawExpenses = Array.isArray(expenseRes.data) ? expenseRes.data : (expenseRes.data.expenses || expenseRes.data.data || []);
 
-      // Sabhi records se unique years nikalna (chahe wo 2027 ho ya 2030)
-      const extractedYears = new Set([2026, 2025, 2024, 2023]); // Default saal hamesha rahenge
+      // Sabhi records se unique years nikalna
+      const extractedYears = new Set([2026, 2025, 2024, 2023]);
       
       [...rawIncomes, ...rawExpenses].forEach(item => {
         const yr = item.year ? Number(item.year) : new Date(item.date || item.createdAt).getFullYear();
@@ -39,7 +39,7 @@ export default function FinancialReport() {
         }
       });
 
-      // Saalon ko descending order (naye se purane) me sort karna
+      // Saalon ko descending order me sort karna
       const sortedYears = Array.from(extractedYears).sort((a, b) => b - a);
       setAllYears(sortedYears);
 
@@ -73,15 +73,12 @@ export default function FinancialReport() {
       return;
     }
 
-    const token = localStorage.getItem('token');
     const endpoint = type === 'income' 
-      ? `http://localhost:5000/api/incomes/${id}` 
-      : `http://localhost:5000/api/expenses/${id}`;
+      ? `/incomes/${id}` 
+      : `/expenses/${id}`;
 
     try {
-      await axios.delete(endpoint, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await API.delete(endpoint);
       
       // Refresh data after successful deletion
       fetchFinancialsData();
@@ -114,7 +111,7 @@ export default function FinancialReport() {
     }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const filteredTransactions = allTransactions.filter(item => {
+  const filteredTransactions = allTransactions.item ? allTransactions : allTransactions.filter(item => {
     if (activeTab === 'income') return item.type === 'income';
     if (activeTab === 'expense') return item.type === 'expense';
     return true;
