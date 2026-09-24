@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginAdmin } from '../api'; // api.js se loginAdmin import kiya gaya hai
+import { loginAdmin } from '../api'; // Agar api.js src folder me hai to ise './api' bhi kar sakte hain agar zaroorat ho
 
 export default function Login({ setAuthToken }) {
   const [email, setEmail] = useState('');
@@ -10,8 +10,8 @@ export default function Login({ setAuthToken }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setErrorMsg(''); // Purana error clear karein
     try {
-      // Ab ye live Render URL (api.js) ke through request bhejaega
       const res = await loginAdmin({ email, password });
       
       // Token aur user details localStorage me save karein
@@ -23,7 +23,8 @@ export default function Login({ setAuthToken }) {
       // Login hone ke baad Admin Dashboard par redirect karein
       navigate('/admin');
     } catch (err) {
-      setErrorMsg('Galat Email ya Password hai! Kripya dubara koshish karein.');
+      console.error('Login Frontend Error:', err);
+      setErrorMsg(err.response?.data?.message || 'Galat Email ya Password hai! Kripya dubara koshish karein.');
     }
   };
 
