@@ -24,13 +24,13 @@ const seedData = async () => {
     await MurtiBari.deleteMany();
     await Gallery.deleteMany();
 
-    // Admin User (Password is now properly hashed)
+    // Admin User (Fixed: using passwordHash instead of password)
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash('admin123', salt);
     await User.create({
       name: 'Pujari Admin',
       email: 'admin@durgapuja.com',
-      password: hash,
+      passwordHash: hash,
       role: 'admin'
     });
 
