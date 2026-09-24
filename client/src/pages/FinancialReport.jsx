@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import API from '../services/api'; // api.js ko import kiya gaya hai
+import API from '../services/api';
 import { TrendingUp, TrendingDown, Wallet, Calendar, Trash2 } from 'lucide-react';
 
 export default function FinancialReport() {
@@ -9,44 +9,32 @@ export default function FinancialReport() {
 
   const [incomeList, setIncomeList] = useState([]);
   const [expenseList, setExpenseList] = useState([]);
-  
-  // Saare available years ko dynamic rakhne ke liye state
   const [allYears, setAllYears] = useState([2026, 2025, 2024, 2023]);
   
-  // Check if admin is logged in based on token existence
+  // Check if admin is logged in (Token check)
   const isAdmin = Boolean(localStorage.getItem('token'));
 
-  // Robust Year Extraction Helper (Handles DD-MM-YYYY, YYYY-MM-DD, and numbers)
+  // Robust Year Extractor for all date formats
   const extractYear = (item) => {
     if (item.year) {
       const yr = Number(item.year);
       if (!isNaN(yr) && yr > 2000 && yr < 2100) return yr;
     }
-    if (item.date) {
-      if (typeof item.date === 'string' && item.date.includes('-')) {
-        const parts = item.date.split('-');
+    const dateStr = item.date || item.createdAt;
+    if (dateStr) {
+      if (typeof dateStr === 'string' && dateStr.includes('-')) {
+        const parts = dateStr.split('-');
         if (parts.length === 3) {
-          if (parts[2].length === 4) {
-            const yr = Number(parts[2]);
-            if (!isNaN(yr)) return yr;
-          }
-          if (parts[0].length === 4) {
-            const yr = Number(parts[0]);
-            if (!isNaN(yr)) return yr;
-          }
+          if (parts[2].length === 4) return Number(parts[2]); // DD-MM-YYYY
+          if (parts[0].length === 4) return Number(parts[0]); // YYYY-MM-DD
         }
       }
-      const d = new Date(item.date);
-      if (!isNaN(d.getFullYear())) return d.getFullYear();
-    }
-    if (item.createdAt) {
-      const d = new Date(item.createdAt);
+      const d = new Date(dateStr);
       if (!isNaN(d.getFullYear())) return d.getFullYear();
     }
     return new Date().getFullYear();
   };
 
-  // Data Fetching Function with Dynamic Years Extraction
   const fetchFinancialsData = async () => {
     setLoading(true);
     try {
@@ -58,25 +46,16 @@ export default function FinancialReport() {
       const rawIncomes = Array.isArray(incomeRes.data) ? incomeRes.data : (incomeRes.data.incomes || incomeRes.data.data || []);
       const rawExpenses = Array.isArray(expenseRes.data) ? expenseRes.data : (expenseRes.data.expenses || expenseRes.data.data || []);
 
-      // Sabhi records se unique years nikalna
       const extractedYears = new Set([2026, 2025, 2024, 2023]);
-      
       [...rawIncomes, ...rawExpenses].forEach(item => {
         const yr = extractYear(item);
-        if (!isNaN(yr) && yr > 2000 && yr < 2100) {
-          extractedYears.add(yr);
-        }
+        if (!isNaN(yr) && yr > 2000 && yr < 2100) extractedYears.add(yr);
       });
 
-      const sortedYears = Array.from(extractedYears).sort((a, b) => b - a);
-      setAllYears(sortedYears);
+      setAllYears(Array.from(extractedYears).sort((a, b) => b - a));
 
-      // Selected year ke mutabiq data filter karna
-      const filteredIncomes = rawIncomes.filter(item => Number(extractYear(item)) === Number(selectedYear));
-      const filteredExpenses = rawExpenses.filter(item => Number(extractYear(item)) === Number(selectedYear));
-
-      setIncomeList(filteredIncomes);
-      setExpenseList(filteredExpenses);
+      setIncomeList(rawIncomes);
+      setExpenseList(rawExpenses);
     } catch (error) {
       console.error("Data Fetching Error:", error);
     } finally {
@@ -86,46 +65,53 @@ export default function FinancialReport() {
 
   useEffect(() => {
     fetchFinancialsData();
-  }, [selectedYear]);
+  }, []);
 
-  // Delete handler for Income or Expense
+  // Delete handler (Only works if admin is logged in)
   const handleDelete = async (id, type) => {
-    if (!window.confirm("क्या आप वाकई इस रिकॉर्ड को डिलीट करना चाहते हैं?")) {
+    if (!isAdmin) {
+      alert("क्षमा करें, यह कार्य केवल एडमिन कर सकता है!");
       return;
     }
+    if (!window.confirm("क्या आप वाकई इस रिकॉर्ड को डिलीट करना चाहते हैं?")) return;
 
-    const endpoint = type === 'income' 
-      ? `/incomes/${id}` 
-      : `/expenses/${id}`;
-
+    const endpoint = type === 'income' ? `/incomes/${id}` : `/expenses/${id}`;
     try {
       await API.delete(endpoint);
       fetchFinancialsData();
     } catch (error) {
       console.error("Delete Error:", error);
-      alert(error.response?.data?.message || "डिलीट करने में विफल! कृपया पुनः प्रयास करें।");
+      alert("डिलीट करने में विफल! कृपया पुनः प्रयास करें।");
     }
   };
 
+  // Filter lists by selected year
+  const yearFilteredIncomes = incomeList.filter(item => Number(extractYear(item)) === Number(selectedYear));
+  const yearFilteredExpenses = expenseList.filter(item => Number(extractYear(item)) === Number(selectedYear));
+
   // Calculations
-  const totalIncome = incomeList.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const totalExpense = expenseList.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const totalIncome = yearFilteredIncomes.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const totalExpense = yearFilteredExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const netBalance = totalIncome - totalExpense;
 
-  // Transactions array for combined view
+  // Combined transactions for display
   const allTransactions = [
-    ...incomeList.map(item => ({
+    ...yearFilteredIncomes.map(item => ({
       id: item._id || item.id,
-      title: item.source || item.title || item.category || 'आय',
+      title: item.title || item.source || item.category || 'आय',
+      category: item.category || 'General',
+      details: item.source || item.details || '-',
       amount: Number(item.amount || 0),
-      date: item.createdAt || item.date || new Date().toISOString(),
+      date: item.date || item.createdAt || new Date().toISOString(),
       type: 'income'
     })),
-    ...expenseList.map(item => ({
+    ...yearFilteredExpenses.map(item => ({
       id: item._id || item.id,
-      title: item.paidTo ? `${item.category || 'खर्च'} (${item.paidTo})` : (item.category || item.item || 'खर्च'),
+      title: item.title || item.category || 'खर्च',
+      category: item.category || 'General',
+      details: item.paidTo ? `Paid to: ${item.paidTo}` : (item.details || '-'),
       amount: Number(item.amount || 0),
-      date: item.createdAt || item.date || new Date().toISOString(),
+      date: item.date || item.createdAt || new Date().toISOString(),
       type: 'expense'
     }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -150,7 +136,7 @@ export default function FinancialReport() {
               आय-व्यय ब्योरा / Financial Report
             </h1>
             <p className="text-amber-100/80 text-sm sm:text-base mt-1">
-              वर्ष {selectedYear} का संपूर्ण प्रामाणिक एवं पारदर्शी आर्थिक विवरण
+              वर्ष {selectedYear} का संपूर्ण प्रामाणिक एवं पारदर्शी आर्थिक विवरण (सार्वजनिक)
             </p>
           </div>
 
@@ -211,14 +197,14 @@ export default function FinancialReport() {
             </div>
           </div>
 
-          {/* Table */}
+          {/* Transactions Table */}
           <div className="bg-white rounded-3xl shadow-xl border border-amber-100 overflow-hidden">
-            <div className="p-5 bg-amber-50 border-b border-amber-200 flex justify-between items-center">
-              <h2 className="text-lg font-bold text-gray-900">वर्ष {selectedYear} का विवरण</h2>
+            <div className="p-5 bg-amber-50 border-b border-amber-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <h2 className="text-lg font-bold text-gray-900">वर्ष {selectedYear} का लेनदेन विवरण</h2>
               <div className="flex bg-white p-1 rounded-xl border border-amber-200">
                 <button onClick={() => setActiveTab('all')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'all' ? 'bg-amber-800 text-white' : 'text-gray-600'}`}>सभी ({allTransactions.length})</button>
-                <button onClick={() => setActiveTab('income')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'income' ? 'bg-emerald-600 text-white' : 'text-gray-600'}`}>आय ({incomeList.length})</button>
-                <button onClick={() => setActiveTab('expense')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'expense' ? 'bg-rose-600 text-white' : 'text-gray-600'}`}>व्यय ({expenseList.length})</button>
+                <button onClick={() => setActiveTab('income')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'income' ? 'bg-emerald-600 text-white' : 'text-gray-600'}`}>आय ({yearFilteredIncomes.length})</button>
+                <button onClick={() => setActiveTab('expense')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'expense' ? 'bg-rose-600 text-white' : 'text-gray-600'}`}>व्यय ({yearFilteredExpenses.length})</button>
               </div>
             </div>
 
@@ -230,20 +216,29 @@ export default function FinancialReport() {
                   <thead>
                     <tr className="bg-gray-50 text-gray-600 text-xs font-bold uppercase border-b">
                       <th className="py-3 px-6">प्रकार</th>
-                      <th className="py-3 px-6">विवरण</th>
+                      <th className="py-3 px-6">शीर्षक / विवरण</th>
+                      <th className="py-3 px-6">श्रेणी</th>
                       <th className="py-3 px-6">दिनांक</th>
                       <th className="py-3 px-6 text-right">राशि</th>
-                      {isAdmin && <th className="py-3 px-6 text-center">एक्शन</th>}
+                      {isAdmin && <th className="py-3 px-6 text-center">एक्शन (Admin Only)</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-sm">
                     {filteredTransactions.map((item) => (
                       <tr key={`${item.type}-${item.id}`} className="hover:bg-amber-50/40">
                         <td className="py-4 px-6 font-bold">
-                          {item.type === 'income' ? <span className="text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full text-xs">आय</span> : <span className="text-rose-700 bg-rose-100 px-2 py-1 rounded-full text-xs">व्यय</span>}
+                          {item.type === 'income' ? (
+                            <span className="text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full text-xs">आय (Income)</span>
+                          ) : (
+                            <span className="text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full text-xs">व्यय (Expense)</span>
+                          )}
                         </td>
-                        <td className="py-4 px-6 font-semibold text-gray-900">{item.title}</td>
-                        <td className="py-4 px-6 text-gray-500">{new Date(item.date).toLocaleDateString('hi-IN')}</td>
+                        <td className="py-4 px-6">
+                          <div className="font-bold text-gray-900">{item.title}</div>
+                          <div className="text-xs text-gray-500">{item.details}</div>
+                        </td>
+                        <td className="py-4 px-6 text-gray-600 font-medium">{item.category}</td>
+                        <td className="py-4 px-6 text-gray-500">{item.date}</td>
                         <td className={`py-4 px-6 text-right font-extrabold text-base ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                           {item.type === 'income' ? '+' : '-'} ₹{item.amount.toLocaleString('hi-IN')}
                         </td>
