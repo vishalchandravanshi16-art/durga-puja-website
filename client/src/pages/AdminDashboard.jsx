@@ -1,25 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Landmark, ImageIcon, BookOpen, Users, MessageSquare, 
-  LogOut, PlusCircle, Trash2, Edit3, Save, DollarSign, TrendingUp, TrendingDown 
+  LogOut, Trash2, Edit3, Save, TrendingUp, TrendingDown 
 } from 'lucide-react';
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('expense');
 
+  // Helper to get current date in YYYY-MM-DD format
+  const getCurrentDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
   // States for Expense & Income
   const [expenseList, setExpenseList] = useState([]);
   const [incomeList, setIncomeList] = useState([]);
+  
+  // Expense Form States
+  const [expYear, setExpYear] = useState(new Date().getFullYear().toString());
   const [expTitle, setExpTitle] = useState('');
   const [expAmount, setExpAmount] = useState('');
-  const [expCategory, setExpCategory] = useState('General');
-  const [expDate, setExpDate] = useState('');
+  const [expCategory, setExpCategory] = useState('');
+  const [expSource, setExpSource] = useState('');
+  const [expDate, setExpDate] = useState(getCurrentDate());
   const [expMsg, setExpMsg] = useState('');
 
+  // Income Form States
+  const [incYear, setIncYear] = useState(new Date().getFullYear().toString());
   const [incTitle, setIncTitle] = useState('');
   const [incAmount, setIncAmount] = useState('');
-  const [incCategory, setIncCategory] = useState('Donation');
-  const [incDate, setIncDate] = useState('');
+  const [incCategory, setIncCategory] = useState('');
+  const [incSource, setIncSource] = useState('');
+  const [incDate, setIncDate] = useState(getCurrentDate());
   const [incMsg, setIncMsg] = useState('');
 
   // States for Murti Bari
@@ -68,30 +81,26 @@ export default function AdminDashboard({ onLogout }) {
   const [editingCommId, setEditingCommId] = useState(null);
   const [commMsg, setCommMsg] = useState('');
 
-  // Fetch all initial data on mount
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
-  const fetchAllData = async () => {
-    try {
-      // Yahan aap apne backend endpoints se data fetch kar sakte hain
-      // const resExp = await fetch('/api/expenses');
-      // setExpenseList(await resExp.json());
-      // Baaki APIs bhi isi tarah call hongi
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
-
   // 1. Handle Expense Submit
   const handleAddExpense = async (e) => {
     e.preventDefault();
     try {
-      const newExpense = { title: expTitle, amount: expAmount, category: expCategory, date: expDate, _id: Date.now().toString() };
+      const newExpense = { 
+        year: expYear, 
+        title: expTitle, 
+        amount: expAmount, 
+        category: expCategory, 
+        source: expSource, 
+        date: expDate, 
+        _id: Date.now().toString() 
+      };
       setExpenseList([newExpense, ...expenseList]);
       setExpMsg('खर्च सफलतापूर्वक जोड़ा गया!');
-      setExpTitle(''); setExpAmount(''); setExpDate('');
+      setExpTitle(''); 
+      setExpAmount(''); 
+      setExpCategory('');
+      setExpSource('');
+      setExpDate(getCurrentDate());
       setTimeout(() => setExpMsg(''), 3000);
     } catch (err) {
       setExpMsg('Error adding expense');
@@ -106,10 +115,22 @@ export default function AdminDashboard({ onLogout }) {
   const handleAddIncome = async (e) => {
     e.preventDefault();
     try {
-      const newIncome = { title: incTitle, amount: incAmount, category: incCategory, date: incDate, _id: Date.now().toString() };
+      const newIncome = { 
+        year: incYear, 
+        title: incTitle, 
+        amount: incAmount, 
+        category: incCategory, 
+        source: incSource, 
+        date: incDate, 
+        _id: Date.now().toString() 
+      };
       setIncomeList([newIncome, ...incomeList]);
       setIncMsg('आय सफलतापूर्वक जोड़ी गई!');
-      setIncTitle(''); setIncAmount(''); setIncDate('');
+      setIncTitle(''); 
+      setIncAmount(''); 
+      setIncCategory('');
+      setIncSource('');
+      setIncDate(getCurrentDate());
       setTimeout(() => setIncMsg(''), 3000);
     } catch (err) {
       setIncMsg('Error adding income');
@@ -263,59 +284,71 @@ export default function AdminDashboard({ onLogout }) {
               {expMsg && <p className="text-xs font-bold mb-4 text-emerald-600">{expMsg}</p>}
               <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">वर्ष (Year)</label>
+                  <input type="text" value={expYear} onChange={(e) => setExpYear(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">शीर्षक (Title)</label>
-                  <input type="text" value={expTitle} onChange={(e) => setExpTitle(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                  <input type="text" value={expTitle} onChange={(e) => setExpTitle(e.target.value)} placeholder="जैसे: मूर्ति निर्माण, पंडाल सजावट" className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount)</label>
-                  <input type="number" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                  <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount in ₹)</label>
+                  <input type="number" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} placeholder="0.00" className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category)</label>
-                  <select value={expCategory} onChange={(e) => setExpCategory(e.target.value)} className="w-full border p-2 rounded text-sm">
-                    <option value="General">General</option>
-                    <option value="Decoration">Decoration</option>
-                    <option value="Puja Samagri">Puja Samagri</option>
-                  </select>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category - अपने मन से लिखें)</label>
+                  <input type="text" value={expCategory} onChange={(e) => setExpCategory(e.target.value)} placeholder="अपनी पसंद की श्रेणी टाइप करें" className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">दिनांक (Date)</label>
-                  <input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="w-full border p-2 rounded text-sm" />
+                  <label className="block text-xs font-bold text-gray-700 mb-1">भुगतान विवरण / स्रोत (Source / Details)</label>
+                  <input type="text" value={expSource} onChange={(e) => setExpSource(e.target.value)} placeholder="किसको दिया / कहाँ खर्च हुआ विवरण" className="w-full border p-2 rounded text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">दिनांक (Date - ऑटोमैटिक)</label>
+                  <input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="w-full border p-2 rounded text-sm bg-gray-50" required />
                 </div>
                 <div className="md:col-span-2">
-                  <button type="submit" className="bg-amber-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Add Expense</button>
+                  <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Add Expense</button>
                 </div>
               </form>
             </div>
             {/* Expense List Table */}
             <div>
               <h4 className="text-sm font-bold text-gray-800 mb-3 uppercase">खर्च सूची ({expenseList.length})</h4>
-              <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="bg-amber-50 text-gray-700 text-xs uppercase border-b">
-                    <th className="py-2.5 px-4">शीर्षक</th>
-                    <th className="py-2.5 px-4">राशि</th>
-                    <th className="py-2.5 px-4">श्रेणी</th>
-                    <th className="py-2.5 px-4 text-center">एक्शन</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {expenseList.length === 0 ? (
-                    <tr><td colSpan="4" className="py-4 text-center text-gray-500 text-xs">कोई खर्च रिकॉर्ड नहीं है।</td></tr>
-                  ) : (
-                    expenseList.map((item) => (
-                      <tr key={item._id} className="hover:bg-amber-50/40">
-                        <td className="py-3 px-4 font-bold text-gray-900">{item.title}</td>
-                        <td className="py-3 px-4 text-amber-700 font-semibold">₹{item.amount}</td>
-                        <td className="py-3 px-4 text-gray-600">{item.category}</td>
-                        <td className="py-3 px-4 text-center">
-                          <button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded-lg cursor-pointer"><Trash2 className="w-4 h-4" /></button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-amber-50 text-gray-700 text-xs uppercase border-b">
+                      <th className="py-2.5 px-4">वर्ष</th>
+                      <th className="py-2.5 px-4">शीर्षक</th>
+                      <th className="py-2.5 px-4">राशि</th>
+                      <th className="py-2.5 px-4">श्रेणी</th>
+                      <th className="py-2.5 px-4">विवरण/स्रोत</th>
+                      <th className="py-2.5 px-4">दिनांक</th>
+                      <th className="py-2.5 px-4 text-center">एक्शन</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {expenseList.length === 0 ? (
+                      <tr><td colSpan="7" className="py-4 text-center text-gray-500 text-xs">कोई खर्च रिकॉर्ड नहीं है।</td></tr>
+                    ) : (
+                      expenseList.map((item) => (
+                        <tr key={item._id} className="hover:bg-amber-50/40">
+                          <td className="py-3 px-4 font-bold text-amber-800">{item.year}</td>
+                          <td className="py-3 px-4 font-bold text-gray-900">{item.title}</td>
+                          <td className="py-3 px-4 text-amber-700 font-semibold">₹{item.amount}</td>
+                          <td className="py-3 px-4 text-gray-600">{item.category}</td>
+                          <td className="py-3 px-4 text-gray-600">{item.source || '-'}</td>
+                          <td className="py-3 px-4 text-gray-500 text-xs">{item.date}</td>
+                          <td className="py-3 px-4 text-center">
+                            <button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded-lg cursor-pointer hover:bg-rose-600 hover:text-white transition"><Trash2 className="w-4 h-4" /></button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -330,59 +363,71 @@ export default function AdminDashboard({ onLogout }) {
               {incMsg && <p className="text-xs font-bold mb-4 text-emerald-600">{incMsg}</p>}
               <form onSubmit={handleAddIncome} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">वर्ष (Year)</label>
+                  <input type="text" value={incYear} onChange={(e) => setIncYear(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">शीर्षक (Title)</label>
-                  <input type="text" value={incTitle} onChange={(e) => setIncTitle(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                  <input type="text" value={incTitle} onChange={(e) => setIncTitle(e.target.value)} placeholder="जैसे: चंदा, दान, सहयोग राशि" className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount)</label>
-                  <input type="number" value={incAmount} onChange={(e) => setIncAmount(e.target.value)} className="w-full border p-2 rounded text-sm" required />
+                  <label className="block text-xs font-bold text-gray-700 mb-1">राशि (Amount in ₹)</label>
+                  <input type="number" value={incAmount} onChange={(e) => setIncAmount(e.target.value)} placeholder="0.00" className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category)</label>
-                  <select value={incCategory} onChange={(e) => setIncCategory(e.target.value)} className="w-full border p-2 rounded text-sm">
-                    <option value="Donation">Donation</option>
-                    <option value="Chanda">Chanda</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">श्रेणी (Category - अपने मन से लिखें)</label>
+                  <input type="text" value={incCategory} onChange={(e) => setIncCategory(e.target.value)} placeholder="अपनी पसंद की श्रेणी टाइप करें" className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">दिनांक (Date)</label>
-                  <input type="date" value={incDate} onChange={(e) => setIncDate(e.target.value)} className="w-full border p-2 rounded text-sm" />
+                  <label className="block text-xs font-bold text-gray-700 mb-1">भुगतान विवरण / स्रोत (Source / Details)</label>
+                  <input type="text" value={incSource} onChange={(e) => setIncSource(e.target.value)} placeholder="किसने दिया / कहाँ से आया स्रोत" className="w-full border p-2 rounded text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">दिनांक (Date - ऑटोमैटिक)</label>
+                  <input type="date" value={incDate} onChange={(e) => setIncDate(e.target.value)} className="w-full border p-2 rounded text-sm bg-gray-50" required />
                 </div>
                 <div className="md:col-span-2">
-                  <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Add Income</button>
+                  <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Add Income</button>
                 </div>
               </form>
             </div>
             {/* Income List Table */}
             <div>
               <h4 className="text-sm font-bold text-gray-800 mb-3 uppercase">आय सूची ({incomeList.length})</h4>
-              <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="bg-emerald-50 text-gray-700 text-xs uppercase border-b">
-                    <th className="py-2.5 px-4">शीर्षक</th>
-                    <th className="py-2.5 px-4">राशि</th>
-                    <th className="py-2.5 px-4">श्रेणी</th>
-                    <th className="py-2.5 px-4 text-center">एक्शन</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {incomeList.length === 0 ? (
-                    <tr><td colSpan="4" className="py-4 text-center text-gray-500 text-xs">कोई आय रिकॉर्ड नहीं है।</td></tr>
-                  ) : (
-                    incomeList.map((item) => (
-                      <tr key={item._id} className="hover:bg-emerald-50/40">
-                        <td className="py-3 px-4 font-bold text-gray-900">{item.title}</td>
-                        <td className="py-3 px-4 text-emerald-700 font-semibold">₹{item.amount}</td>
-                        <td className="py-3 px-4 text-gray-600">{item.category}</td>
-                        <td className="py-3 px-4 text-center">
-                          <button onClick={() => handleDeleteIncome(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded-lg cursor-pointer"><Trash2 className="w-4 h-4" /></button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-emerald-50 text-gray-700 text-xs uppercase border-b">
+                      <th className="py-2.5 px-4">वर्ष</th>
+                      <th className="py-2.5 px-4">शीर्षक</th>
+                      <th className="py-2.5 px-4">राशि</th>
+                      <th className="py-2.5 px-4">श्रेणी</th>
+                      <th className="py-2.5 px-4">विवरण/स्रोत</th>
+                      <th className="py-2.5 px-4">दिनांक</th>
+                      <th className="py-2.5 px-4 text-center">एक्शन</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {incomeList.length === 0 ? (
+                      <tr><td colSpan="7" className="py-4 text-center text-gray-500 text-xs">कोई आय रिकॉर्ड नहीं है।</td></tr>
+                    ) : (
+                      incomeList.map((item) => (
+                        <tr key={item._id} className="hover:bg-emerald-50/40">
+                          <td className="py-3 px-4 font-bold text-emerald-800">{item.year}</td>
+                          <td className="py-3 px-4 font-bold text-gray-900">{item.title}</td>
+                          <td className="py-3 px-4 text-emerald-700 font-semibold">₹{item.amount}</td>
+                          <td className="py-3 px-4 text-gray-600">{item.category}</td>
+                          <td className="py-3 px-4 text-gray-600">{item.source || '-'}</td>
+                          <td className="py-3 px-4 text-gray-500 text-xs">{item.date}</td>
+                          <td className="py-3 px-4 text-center">
+                            <button onClick={() => handleDeleteIncome(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded-lg cursor-pointer hover:bg-rose-600 hover:text-white transition"><Trash2 className="w-4 h-4" /></button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
