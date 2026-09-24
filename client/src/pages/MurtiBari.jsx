@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import API from '../services/api'; // Shared API instance import kiya gaya hai
 import { 
   Crown, 
   Calendar, 
@@ -25,7 +25,7 @@ export default function MurtiBari() {
 
   const fetchMurtiBariList = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/murti-bari');
+      const response = await API.get('/murti-bari');
       // Agar backend se data array format me milta hai
       if (Array.isArray(response.data) && response.data.length > 0) {
         setMurtiBariData(response.data);
@@ -93,7 +93,7 @@ export default function MurtiBari() {
                   <button
                     key={item._id || item.year}
                     onClick={() => setSelectedYear(item.year)}
-                    className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-1.5 shadow-sm ${
+                    className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-1.5 shadow-sm cursor-pointer ${
                       selectedYear === item.year
                         ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-red-950 shadow-amber-500/20 scale-105'
                         : 'bg-white/10 text-amber-100 hover:bg-white/20 hover:text-white'
@@ -135,6 +135,7 @@ export default function MurtiBari() {
               {activeData.status === 'Current' || activeData.year === 2026 ? <Clock className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
               {activeData.status || 'संपन्न'}
             </span>
+
           </div>
 
           {/* Details Grid */}
