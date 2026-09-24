@@ -3,160 +3,147 @@ import API from '../services/api';
 import { TrendingUp, TrendingDown, Wallet, Calendar, Trash2 } from 'lucide-react';
 
 export default function FinancialReport() {
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
-
   const [incomeList, setIncomeList] = useState([]);
   const [expenseList, setExpenseList] = useState([]);
-  const [allYears, setAllYears] = useState([2026, 2025, 2024, 2023]);
-  
-  // Check if admin is logged in (Token check)
+  const [activeTab, setActiveTab] = useState('all');
+
   const isAdmin = Boolean(localStorage.getItem('token'));
 
-  // Robust Year Extractor for all date formats
-  const extractYear = (item) => {
-    if (item.year) {
-      const yr = Number(item.year);
-      if (!isNaN(yr) && yr > 2000 && yr < 2100) return yr;
-    }
-    const dateStr = item.date || item.createdAt;
-    if (dateStr) {
-      if (typeof dateStr === 'string' && dateStr.includes('-')) {
-        const parts = dateStr.split('-');
-        if (parts.length === 3) {
-          if (parts[2].length === 4) return Number(parts[2]); // DD-MM-YYYY
-          if (parts[0].length === 4) return Number(parts[0]); // YYYY-MM-DD
-        }
-      }
-      const d = new Date(dateStr);
-      if (!isNaN(d.getFullYear())) return d.getFullYear();
-    }
-    return new Date().getFullYear();
-  };
-
-  const fetchFinancialsData = async () => {
+  const fetchFinancialData = async () => {
     setLoading(true);
     try {
-      const [incomeRes, expenseRes] = await Promise.all([
-        API.get('/incomes').catch(() => ({ data: [] })),
-        API.get('/expenses').catch(() => ({ data: [] }))
-      ]);
+      // Dono routes ko try karte hain taaki 404 ya endpoint mismatch ka chakkar na rahe
+      let incomeRes = { data: [] };
+      let expenseRes = { data: [] };
 
-      const rawIncomes = Array.isArray(incomeRes.data) ? incomeRes.data : (incomeRes.data.incomes || incomeRes.data.data || []);
-      const rawExpenses = Array.isArray(expenseRes.data) ? expenseRes.data : (expenseRes.data.expenses || expenseRes.data.data || []);
+      try {
+        incomeRes = await API.get('/incomes');
+      } catch (e) {
+        try { incomeRes = await API.get('/income'); } catch (err) { console.error("Income fetch failed"); }
+      }
 
-      const extractedYears = new Set([2026, 2025, 2024, 2023]);
-      [...rawIncomes, ...rawExpenses].forEach(item => {
-        const yr = extractYear(item);
-        if (!isNaN(yr) && yr > 2000 && yr < 2100) extractedYears.add(yr);
-      });
+      try {
+        expenseRes = await API.get('/expenses');
+      } catch (e) {
+        try { expenseRes = await API.get('/expense'); } catch (err) { console.error("Expense fetch failed"); }
+      }
 
-      setAllYears(Array.from(extractedYears).sort((a, b) => b - a));
+      console.log("Fetched Incomes:", incomeRes.data);
+      console.log("Fetched Expenses:", expenseRes.data);
 
-      setIncomeList(rawIncomes);
-      setExpenseList(rawExpenses);
+      const incomesData = Array.isArray(incomeRes.data) ? incomeRes.data : (incomeRes.data.incomes || incomeRes.data.data || []);
+      const expensesData = Array.isArray(expenseRes.data) ? expenseRes.data : (expenseRes.data.expenses || expenseRes.data.data || []);
+
+      setIncomeList(incomesData);
+      setExpenseList(expensesData);
     } catch (error) {
-      console.error("Data Fetching Error:", error);
+      console.error("Error fetching financials:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFinancialsData();
+    fetchFinancialData();
   }, []);
 
-  // Delete handler (Only works if admin is logged in)
   const handleDelete = async (id, type) => {
     if (!isAdmin) {
-      alert("क्षमा करें, यह कार्य केवल एडमिन कर सकता है!");
+      alert("Kshama karein, yeh karya kewal admin kar sakta hai!");
       return;
     }
-    if (!window.confirm("क्या आप वाकई इस रिकॉर्ड को डिलीट करना चाहते हैं?")) return;
+    if (!window.confirm("Kya aap waakai is record ko delete karna chahte hain?")) return;
 
-    const endpoint = type === 'income' ? `/incomes/${id}` : `/expenses/${id}`;
     try {
+      const endpoint = type === 'income' ? `/incomes/${id}` : `/expenses/${id}`;
       await API.delete(endpoint);
-      fetchFinancialsData();
+      fetchFinancialData();
     } catch (error) {
-      console.error("Delete Error:", error);
-      alert("डिलीट करने में विफल! कृपया पुनः प्रयास करें।");
+      console.error("Delete error:", error);
+      alert("Delete karne mein safal nahi hue!");
     }
   };
 
-  // Filter lists by selected year
-  const yearFilteredIncomes = incomeList.filter(item => Number(extractYear(item)) === Number(selectedYear));
-  const yearFilteredExpenses = expenseList.filter(item => Number(extractYear(item)) === Number(selectedYear));
+  // Format and combine data safely
+  const formattedIncomes = incomeList.map(item => ({
+    id: item._id || item.id,
+    title: item.title || item.source || item.category || 'Aay (Income)',
+    category: item.category || 'General',
+    details: item.source || item.details || '-',
+    amount: Number(item.amount || 0),
+    date: item.date || item.createdAt || '2026-01-01',
+    year: String(item.year || (item.date ? item.date.split('-')[0] : '2026')),
+    type: 'income'
+  }));
 
-  // Calculations
-  const totalIncome = yearFilteredIncomes.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const totalExpense = yearFilteredExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
-  const netBalance = totalIncome - totalExpense;
+  const formattedExpenses = expenseList.map(item => ({
+    id: item._id || item.id,
+    title: item.title || item.category || 'Kharch (Expense)',
+    category: item.category || 'General',
+    details: item.paidTo ? `Paid to: ${item.paidTo}` : (item.details || '-'),
+    amount: Number(item.amount || 0),
+    date: item.date || item.createdAt || '2026-01-01',
+    year: String(item.year || (item.date ? item.date.split('-')[0] : '2026')),
+    type: 'expense'
+  }));
 
-  // Combined transactions for display
-  const allTransactions = [
-    ...yearFilteredIncomes.map(item => ({
-      id: item._id || item.id,
-      title: item.title || item.source || item.category || 'आय',
-      category: item.category || 'General',
-      details: item.source || item.details || '-',
-      amount: Number(item.amount || 0),
-      date: item.date || item.createdAt || new Date().toISOString(),
-      type: 'income'
-    })),
-    ...yearFilteredExpenses.map(item => ({
-      id: item._id || item.id,
-      title: item.title || item.category || 'खर्च',
-      category: item.category || 'General',
-      details: item.paidTo ? `Paid to: ${item.paidTo}` : (item.details || '-'),
-      amount: Number(item.amount || 0),
-      date: item.date || item.createdAt || new Date().toISOString(),
-      type: 'expense'
-    }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const allTransactions = [...formattedIncomes, ...formattedExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  const filteredTransactions = allTransactions.filter(item => {
+  const filteredTransactions = selectedYear === 'all' 
+    ? allTransactions 
+    : allTransactions.filter(item => String(item.year) === String(selectedYear));
+
+  const finalDisplayList = filteredTransactions.filter(item => {
     if (activeTab === 'income') return item.type === 'income';
     if (activeTab === 'expense') return item.type === 'expense';
     return true;
   });
 
+  const totalIncome = filteredTransactions.filter(i => i.type === 'income').reduce((sum, i) => sum + i.amount, 0);
+  const totalExpense = filteredTransactions.filter(i => i.type === 'expense').reduce((sum, i) => sum + i.amount, 0);
+  const netBalance = totalIncome - totalExpense;
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 py-6 font-sans">
-      {/* Top Banner */}
       <div className="bg-gradient-to-r from-red-950 via-amber-900 to-red-950 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-amber-500/30">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="inline-flex items-center gap-2 bg-amber-400/20 text-amber-300 px-3 py-1 rounded-full text-xs font-semibold mb-3 border border-amber-400/30">
               <Calendar className="w-3.5 h-3.5 text-amber-400" />
-              <span>वित्तीय वर्ष विवरण</span>
+              <span>Vittiya Varsh Vivaran</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black text-amber-300">
-              आय-व्यय ब्योरा / Financial Report
+              Aay-Vyay Byora / Financial Report
             </h1>
             <p className="text-amber-100/80 text-sm sm:text-base mt-1">
-              वर्ष {selectedYear} का संपूर्ण प्रामाणिक एवं पारदर्शी आर्थिक विवरण (सार्वजनिक)
+              Sampurna pramanik evam pardarshi aarthik vivaran (Sarvajanik)
             </p>
           </div>
 
           <div className="bg-black/40 backdrop-blur-md p-2 rounded-2xl border border-amber-500/30">
             <span className="text-xs font-bold text-amber-300/80 px-3 py-1 block uppercase tracking-wider mb-1">
-              वर्ष चुनें / Select Year
+              Varsh Chune / Select Year
             </span>
-            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-              {allYears.map((year) => (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedYear('all')}
+                className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                  selectedYear === 'all' ? 'bg-amber-400 text-red-950' : 'bg-white/10 text-amber-100 hover:bg-white/20'
+                }`}
+              >
+                Sabhi (All)
+              </button>
+              {['2026', '2025', '2024', '2023'].map((yr) => (
                 <button
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-                    selectedYear === year
-                      ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-red-950 shadow-amber-500/20 scale-105'
-                      : 'bg-white/10 text-amber-100 hover:bg-white/20'
+                  key={yr}
+                  onClick={() => setSelectedYear(yr)}
+                  className={`px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                    selectedYear === yr ? 'bg-amber-400 text-red-950' : 'bg-white/10 text-amber-100 hover:bg-white/20'
                   }`}
                 >
-                  <Calendar className="w-4 h-4" />
-                  {year}
+                  {yr}
                 </button>
               ))}
             </div>
@@ -170,11 +157,10 @@ export default function FinancialReport() {
         </div>
       ) : (
         <>
-          {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-emerald-500 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase">कुल आय (TOTAL INCOME)</p>
+                <p className="text-xs font-bold text-gray-500 uppercase">Kul Aay (TOTAL INCOME)</p>
                 <h3 className="text-2xl font-extrabold text-emerald-600 mt-1">₹{totalIncome.toLocaleString('hi-IN')}</h3>
               </div>
               <TrendingUp className="w-8 h-8 text-emerald-500" />
@@ -182,7 +168,7 @@ export default function FinancialReport() {
 
             <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-rose-500 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase">कुल व्यय (TOTAL EXPENSE)</p>
+                <p className="text-xs font-bold text-gray-500 uppercase">Kul Vyay (TOTAL EXPENSE)</p>
                 <h3 className="text-2xl font-extrabold text-rose-600 mt-1">₹{totalExpense.toLocaleString('hi-IN')}</h3>
               </div>
               <TrendingDown className="w-8 h-8 text-rose-500" />
@@ -190,47 +176,46 @@ export default function FinancialReport() {
 
             <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-amber-500 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase">अंतिम शेष (NET BALANCE)</p>
+                <p className="text-xs font-bold text-gray-500 uppercase">Antim Sesh (NET BALANCE)</p>
                 <h3 className="text-2xl font-extrabold text-amber-700 mt-1">₹{netBalance.toLocaleString('hi-IN')}</h3>
               </div>
               <Wallet className="w-8 h-8 text-amber-600" />
             </div>
           </div>
 
-          {/* Transactions Table */}
           <div className="bg-white rounded-3xl shadow-xl border border-amber-100 overflow-hidden">
             <div className="p-5 bg-amber-50 border-b border-amber-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-              <h2 className="text-lg font-bold text-gray-900">वर्ष {selectedYear} का लेनदेन विवरण</h2>
+              <h2 className="text-lg font-bold text-gray-900">Len-Den Vivaran (Transactions)</h2>
               <div className="flex bg-white p-1 rounded-xl border border-amber-200">
-                <button onClick={() => setActiveTab('all')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'all' ? 'bg-amber-800 text-white' : 'text-gray-600'}`}>सभी ({allTransactions.length})</button>
-                <button onClick={() => setActiveTab('income')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'income' ? 'bg-emerald-600 text-white' : 'text-gray-600'}`}>आय ({yearFilteredIncomes.length})</button>
-                <button onClick={() => setActiveTab('expense')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'expense' ? 'bg-rose-600 text-white' : 'text-gray-600'}`}>व्यय ({yearFilteredExpenses.length})</button>
+                <button onClick={() => setActiveTab('all')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'all' ? 'bg-amber-800 text-white' : 'text-gray-600'}`}>Sabhi ({filteredTransactions.length})</button>
+                <button onClick={() => setActiveTab('income')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'income' ? 'bg-emerald-600 text-white' : 'text-gray-600'}`}>Aay</button>
+                <button onClick={() => setActiveTab('expense')} className={`px-3 py-1 rounded-lg text-xs font-bold cursor-pointer ${activeTab === 'expense' ? 'bg-rose-600 text-white' : 'text-gray-600'}`}>Vyay</button>
               </div>
             </div>
 
             <div className="overflow-x-auto">
-              {filteredTransactions.length === 0 ? (
-                <div className="p-12 text-center text-gray-500 font-semibold">वर्ष {selectedYear} के लिए कोई रिकॉर्ड नहीं मिला।</div>
+              {finalDisplayList.length === 0 ? (
+                <div className="p-12 text-center text-gray-500 font-semibold">Koi record uplabdh nahi hai.</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50 text-gray-600 text-xs font-bold uppercase border-b">
-                      <th className="py-3 px-6">प्रकार</th>
-                      <th className="py-3 px-6">शीर्षक / विवरण</th>
-                      <th className="py-3 px-6">श्रेणी</th>
-                      <th className="py-3 px-6">दिनांक</th>
-                      <th className="py-3 px-6 text-right">राशि</th>
-                      {isAdmin && <th className="py-3 px-6 text-center">एक्शन (Admin Only)</th>}
+                      <th className="py-3 px-6">Prakar</th>
+                      <th className="py-3 px-6">Shirsak / Vivaran</th>
+                      <th className="py-3 px-6">Shreni</th>
+                      <th className="py-3 px-6">Dinank</th>
+                      <th className="py-3 px-6 text-right">Rashi</th>
+                      {isAdmin && <th className="py-3 px-6 text-center">Action</th>}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 text-sm">
-                    {filteredTransactions.map((item) => (
+                    {finalDisplayList.map((item) => (
                       <tr key={`${item.type}-${item.id}`} className="hover:bg-amber-50/40">
                         <td className="py-4 px-6 font-bold">
                           {item.type === 'income' ? (
-                            <span className="text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full text-xs">आय (Income)</span>
+                            <span className="text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full text-xs">Aay</span>
                           ) : (
-                            <span className="text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full text-xs">व्यय (Expense)</span>
+                            <span className="text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full text-xs">Vyay</span>
                           )}
                         </td>
                         <td className="py-4 px-6">
@@ -247,7 +232,7 @@ export default function FinancialReport() {
                             <button
                               onClick={() => handleDelete(item.id, item.type)}
                               className="bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white p-2 rounded-xl transition-all duration-200 cursor-pointer"
-                              title="रिकॉर्ड डिलीट करें"
+                              title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
