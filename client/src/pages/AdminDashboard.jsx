@@ -3,87 +3,59 @@ import {
   TrendingUp, 
   TrendingDown, 
   Landmark, 
-  ImageIcon, 
+  Image as ImageIcon, 
   BookOpen, 
   Users, 
   MessageSquare, 
+  LogOut, 
   Save, 
   Trash2, 
-  Edit3 
+  Edit3, 
+  PlusCircle,
+  DollarSign
 } from 'lucide-react';
 
-export default function AdminDashboard() {
+// Admin Messages Component Placeholder (agar alag se hai toh import kar sakte hain)
+import AdminMessages from './AdminMessages';
+
+export default function AdminDashboard({ onLogout, apiBaseUrl }) {
   const [activeTab, setActiveTab] = useState('expense');
 
-  // --- 1. Expense States (Placeholder / Integrated) ---
-  const [expMsg, setExpMsg] = useState('');
+  // State variables for Expense Tab
   const [expYear, setExpYear] = useState('');
   const [expCategory, setExpCategory] = useState('');
   const [expAmount, setExpAmount] = useState('');
-  const [expSource, setExpSource] = useState('');
+  const [expDescription, setExpDescription] = useState('');
+  const [expMsg, setExpMsg] = useState('');
   const [expenseList, setExpenseList] = useState([]);
 
-  const handleAddExpense = (e) => {
-    e.preventDefault();
-    // Add your expense submission logic here
-    setExpMsg('Expense saved successfully!');
-  };
-
-  const handleDeleteExpense = (id) => {
-    setExpenseList(expenseList.filter(item => item._id !== id));
-  };
-
-  // --- 2. Income States ---
-  const [incMsg, setIncMsg] = useState('');
+  // State variables for Income Tab
   const [incYear, setIncYear] = useState('');
   const [incCategory, setIncCategory] = useState('');
   const [incAmount, setIncAmount] = useState('');
   const [incSource, setIncSource] = useState('');
+  const [incMsg, setIncMsg] = useState('');
 
-  const handleAddIncome = (e) => {
-    e.preventDefault();
-    setIncMsg('Income saved successfully!');
-  };
-
-  // --- 3. Murti Bari States ---
-  const [mbMsg, setMbMsg] = useState('');
+  // State variables for Murti Bari Tab
   const [mbYear, setMbYear] = useState('');
   const [mbFamilyName, setMbFamilyName] = useState('');
   const [mbFatherName, setMbFatherName] = useState('');
   const [mbAddress, setMbAddress] = useState('');
   const [mbStatus, setMbStatus] = useState('Upcoming');
   const [mbNotes, setMbNotes] = useState('');
+  const [mbMsg, setMbMsg] = useState('');
   const [murtiBariList, setMurtiBariList] = useState([]);
 
-  const handleAddMurtiBari = (e) => {
-    e.preventDefault();
-    setMbMsg('Murti Bari added successfully!');
-  };
-
-  const handleDeleteMurtiBari = (id) => {
-    setMurtiBariList(murtiBariList.filter(item => item._id !== id));
-  };
-
-  // --- 4. Gallery States ---
-  const [galMsg, setGalMsg] = useState('');
+  // State variables for Gallery Tab
   const [galYear, setGalYear] = useState('');
   const [galCategory, setGalCategory] = useState('Maa Durga');
   const [galImageFile, setGalImageFile] = useState(null);
   const [galTitle, setGalTitle] = useState('');
   const [galDesc, setGalDesc] = useState('');
+  const [galMsg, setGalMsg] = useState('');
   const [galleryList, setGalleryList] = useState([]);
 
-  const handleAddGalleryPhoto = (e) => {
-    e.preventDefault();
-    setGalMsg('Photo uploaded to gallery successfully!');
-  };
-
-  const handleDeleteGalleryPhoto = (id) => {
-    setGalleryList(galleryList.filter(item => item._id !== id));
-  };
-
-  // --- 5. History & Drama States ---
-  const [historyMsg, setHistoryMsg] = useState('');
+  // State variables for History Tab
   const [inputYear, setInputYear] = useState('');
   const [theme, setTheme] = useState('');
   const [director, setDirector] = useState('');
@@ -94,28 +66,11 @@ export default function AdminDashboard() {
   const [mainCast, setMainCast] = useState('');
   const [description, setDescription] = useState('');
   const [historyImageFile, setHistoryImageFile] = useState(null);
-  const [editingEventId, setEditingEventId] = useState(null);
+  const [historyMsg, setHistoryMsg] = useState('');
   const [historyList, setHistoryList] = useState([]);
+  const [editingEventId, setEditingEventId] = useState(null);
 
-  const handleHistorySubmit = (e) => {
-    e.preventDefault();
-    setHistoryMsg(editingEventId ? 'History updated successfully!' : 'History saved successfully!');
-  };
-
-  const handleEditHistoryClick = (item) => {
-    setEditingEventId(item._id);
-    setInputYear(item.year);
-    setDramaTitle(item.title);
-    setDayNumber(item.dayNumber);
-    setCategory(item.category);
-  };
-
-  const handleDeleteHistory = (id) => {
-    setHistoryList(historyList.filter(item => item._id !== id));
-  };
-
-  // --- 6. Committee States ---
-  const [commMsg, setCommMsg] = useState('');
+  // State variables for Committee Tab
   const [commName, setCommName] = useState('');
   const [commRole, setCommRole] = useState('');
   const [commPhone, setCommPhone] = useState('');
@@ -123,19 +78,67 @@ export default function AdminDashboard() {
   const [commResponsibility, setCommResponsibility] = useState('');
   const [commOrder, setCommOrder] = useState('');
   const [commImageFile, setCommImageFile] = useState(null);
-  const [editingCommId, setEditingCommId] = useState(null);
+  const [commMsg, setCommMsg] = useState('');
   const [committeeList, setCommitteeList] = useState([]);
+  const [editingCommId, setEditingCommId] = useState(null);
+
+  // Handlers (Dummy/Template placeholders for submit actions)
+  const handleAddExpense = (e) => {
+    e.preventDefault();
+    setExpMsg('Expense saved successfully!');
+  };
+
+  const handleDeleteExpense = (id) => {
+    setExpenseList(expenseList.filter(item => item._id !== id));
+  };
+
+  const handleAddIncome = (e) => {
+    e.preventDefault();
+    setIncMsg('Income saved successfully!');
+  };
+
+  const handleAddMurtiBari = (e) => {
+    e.preventDefault();
+    setMbMsg('Murti Bari added successfully!');
+  };
+
+  const handleDeleteMurtiBari = (id) => {
+    setMurtiBariList(murtiBariList.filter(item => item._id !== id));
+  };
+
+  const handleAddGalleryPhoto = (e) => {
+    e.preventDefault();
+    setGalMsg('Photo uploaded to gallery successfully!');
+  };
+
+  const handleDeleteGalleryPhoto = (id) => {
+    setGalleryList(galleryList.filter(item => item._id !== id));
+  };
+
+  const handleHistorySubmit = (e) => {
+    e.preventDefault();
+    setHistoryMsg('History / Event saved successfully!');
+  };
+
+  const handleEditHistoryClick = (item) => {
+    setEditingEventId(item._id);
+    setInputYear(item.year);
+    setDramaTitle(item.title);
+  };
+
+  const handleDeleteHistory = (id) => {
+    setHistoryList(historyList.filter(item => item._id !== id));
+  };
 
   const handleCommitteeSubmit = (e) => {
     e.preventDefault();
-    setCommMsg(editingCommId ? 'Member updated successfully!' : 'Committee member added successfully!');
+    setCommMsg('Committee member saved successfully!');
   };
 
   const handleEditCommitteeClick = (member) => {
     setEditingCommId(member._id);
     setCommName(member.name);
     setCommRole(member.position);
-    setCommYear(member.year);
   };
 
   const handleDeleteCommittee = (id) => {
@@ -143,64 +146,67 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar / Navigation Tabs */}
-      <aside className="w-64 bg-white border-r shadow-sm p-4 space-y-2">
-        <h2 className="text-xl font-black text-gray-800 mb-6 px-2">Admin Panel</h2>
-        
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      {/* Top Navbar with Logout */}
+      <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
+        <button 
+          onClick={onLogout} 
+          className="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 cursor-pointer transition"
+        >
+          <LogOut className="w-4 h-4" /> Logout
+        </button>
+      </header>
+
+      {/* Tabs Navigation */}
+      <nav className="bg-white border-b px-6 flex overflow-x-auto gap-4 py-2">
         <button 
           onClick={() => setActiveTab('expense')} 
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'expense' ? 'bg-rose-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'expense' ? 'bg-rose-100 text-rose-700' : 'text-gray-600 hover:bg-gray-100'}`}
         >
-          <TrendingDown className="w-4 h-4" /> खर्च (Expense)
+          Expense (खर्च)
         </button>
-
         <button 
           onClick={() => setActiveTab('income')} 
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'income' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'income' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-600 hover:bg-gray-100'}`}
         >
-          <TrendingUp className="w-4 h-4" /> आय (Income)
+          Income (आय)
         </button>
-
         <button 
           onClick={() => setActiveTab('murtibari')} 
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'murtibari' ? 'bg-amber-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'murtibari' ? 'bg-amber-100 text-amber-700' : 'text-gray-600 hover:bg-gray-100'}`}
         >
-          <Landmark className="w-4 h-4" /> मूर्ति बारी (Murti Bari)
+          Murti Bari (मूर्ति बारी)
         </button>
-
         <button 
           onClick={() => setActiveTab('gallery')} 
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'gallery' ? 'bg-blue-800 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'gallery' ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
         >
-          <ImageIcon className="w-4 h-4" /> गैलरी (Gallery)
+          Gallery (गैलरी)
         </button>
-
         <button 
           onClick={() => setActiveTab('history')} 
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'history' ? 'bg-red-900 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'history' ? 'bg-red-100 text-red-900' : 'text-gray-600 hover:bg-gray-100'}`}
         >
-          <BookOpen className="w-4 h-4" /> इतिहास व नाटक (History)
+          History & Drama (इतिहास)
         </button>
-
         <button 
           onClick={() => setActiveTab('committee')} 
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'committee' ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'committee' ? 'bg-purple-100 text-purple-700' : 'text-gray-600 hover:bg-gray-100'}`}
         >
-          <Users className="w-4 h-4" /> कमेटी (Committee)
+          Committee (कमेटी)
         </button>
-
         <button 
           onClick={() => setActiveTab('messages')} 
-          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-bold transition cursor-pointer ${activeTab === 'messages' ? 'bg-gray-800 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+          className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap cursor-pointer ${activeTab === 'messages' ? 'bg-gray-200 text-gray-900' : 'text-gray-600 hover:bg-gray-100'}`}
         >
-          <MessageSquare className="w-4 h-4" /> संदेश (Messages)
+          Messages (संदेश)
         </button>
-      </aside>
+      </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-8 overflow-y-auto">
-
+      {/* Main Content Container */}
+      <main className="p-6 flex-1 max-w-7xl w-full mx-auto">
+        
         {/* 1. Expense Tab */}
         {activeTab === 'expense' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
@@ -208,7 +214,7 @@ export default function AdminDashboard() {
               <h3 className="text-lg font-bold text-rose-600 mb-4 flex items-center gap-2">
                 <TrendingDown className="w-5 h-5" /> खर्च जोड़ें (Add Expense)
               </h3>
-              {expMsg && <p className="text-xs font-bold mb-4 text-emerald-600">{expMsg}</p>}
+              {expMsg && <p className="text-xs font-bold mb-4 text-rose-600">{expMsg}</p>}
               <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">वर्ष (Year)</label>
@@ -223,8 +229,8 @@ export default function AdminDashboard() {
                   <input type="number" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="w-full border p-2 rounded text-sm" required />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">भुगतान विवरण / स्त्रोत (Source/Details)</label>
-                  <input type="text" value={expSource} onChange={(e) => setExpSource(e.target.value)} className="w-full border p-2 rounded text-sm" />
+                  <label className="block text-xs font-bold text-gray-700 mb-1">विवरण (Description)</label>
+                  <input type="text" value={expDescription} onChange={(e) => setExpDescription(e.target.value)} className="w-full border p-2 rounded text-sm" />
                 </div>
                 <div className="md:col-span-2">
                   <button type="submit" className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm cursor-pointer">Save Expense</button>
@@ -255,7 +261,7 @@ export default function AdminDashboard() {
                           <td className="py-3 px-4 font-bold text-rose-800">{item.year}</td>
                           <td className="py-3 px-4 font-semibold text-gray-900">{item.category}</td>
                           <td className="py-3 px-4 text-gray-600">₹{item.amount}</td>
-                          <td className="py-3 px-4 text-gray-600">{item.source || '-'}</td>
+                          <td className="py-3 px-4 text-gray-500">{item.description || '-'}</td>
                           <td className="py-3 px-4 text-center">
                             <button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white p-1.5 rounded-lg transition cursor-pointer">
                               <Trash2 className="w-4 h-4" />
@@ -675,10 +681,7 @@ export default function AdminDashboard() {
         {/* 7. Messages Tab */}
         {activeTab === 'messages' && (
           <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-gray-600" /> संदेश (Messages Management)
-            </h3>
-            <p className="text-xs text-gray-500">यहाँ यूज़र्स द्वारा भेजे गए संदेश दिखाई देंगे।</p>
+            <AdminMessages />
           </div>
         )}
 
