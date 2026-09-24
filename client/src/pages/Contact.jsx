@@ -11,6 +11,7 @@ import {
   Users,
   MessageSquare
 } from 'lucide-react';
+import API from '../services/api'; // <--- Yeh humne API import kar liya hai
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -29,20 +30,15 @@ export default function Contact() {
       setLoading(true);
       setErrorMsg('');
       try {
-        const response = await fetch('http://localhost:5000/api/contact/send', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
+        // Yahan ab humne localhost hata kar API.post use kiya hai jo automatically Render ka URL utha lega
+        const response = await API.post('/contact/send', formData);
 
-        const data = await response.json();
-
-        if (response.ok && data.success) {
+        if (response.status === 200 || response.status === 201) {
           setSubmitted(true);
           setFormData({ name: '', phone: '', address: '', message: '' });
           setTimeout(() => setSubmitted(false), 5000);
         } else {
-          setErrorMsg(data.error || 'संदेश भेजने में समस्या आई।');
+          setErrorMsg('संदेश भेजने में समस्या आई।');
         }
       } catch (error) {
         console.error("Submit Error:", error);
