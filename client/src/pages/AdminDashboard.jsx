@@ -613,13 +613,13 @@ export default function AdminDashboard({ onLogout }) {
                 messagesList.map((msg) => (
                   <div key={msg._id || msg.id} className="border p-4 rounded-xl shadow-sm bg-teal-50/20 flex justify-between items-start gap-4">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-gray-900 text-sm">{msg.name || 'Shradhalu'}</h4>
-                        <span className="text-xs text-teal-700 font-semibold bg-teal-100 px-2 py-0.5 rounded">
-                          {msg.mobile || msg.email || 'N/A'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-700 mt-1"><b>संदेश:</b> {msg.message || msg.text || msg.suggestion}</p>
+                     <h4 className="font-bold text-gray-900">{msg.name || 'Shradhalu'}</h4>
+                      <span className="text-xs text-teal-700 font-semibold bg-teal-100 px-2 py-0.5 rounded inline-block mt-1">
+  📞 {msg.phone || 'N/A'}
+</span>
+<span className="text-xs text-gray-600 block mt-1">
+  📍 पता: {msg.address || 'N/A'}
+</span>
                       <span className="text-[10px] text-gray-400 block">
                         {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
                       </span>
