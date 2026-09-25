@@ -81,7 +81,7 @@ export default function AdminDashboard({ onLogout }) {
   // Fetch Messages when Messages tab is active
   useEffect(() => {
     if (activeTab === 'messages') {
-      fetch('/api/messages') // Agar aapka endpoint alag ho jaise '/api/contact', toh yahan change kar sakte hain
+      fetch('/api/contact') // Agar aapka endpoint alag ho jaise '/api/contact', toh yahan change kar sakte hain
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -96,7 +96,7 @@ export default function AdminDashboard({ onLogout }) {
 
   const handleDeleteMessage = async (id) => {
     try {
-      await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      await fetch(`/api/contact/${id}`, { method: 'DELETE' });
       setMessagesList(messagesList.filter(item => (item._id || item.id) !== id));
     } catch (err) {
       console.log('Error deleting message:', err);
