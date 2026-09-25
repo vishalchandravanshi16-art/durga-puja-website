@@ -31,4 +31,8 @@ export const addExpenseApi = (data) => API.post('/expenses', data);
 export const addIncomeApi = (data) => API.post('/incomes', data);
 export const addMemberApi = (data) => API.post('/members', data);
 
+// 👇 Yeh naye functions add kar diye hain Contact / Messages ke liye:
+export const sendContactMessage = (data) => API.post('/contact/send', data);
+export const fetchContactMessages = () => API.get('/contact');
+
 export default API;
