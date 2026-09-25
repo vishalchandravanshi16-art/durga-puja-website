@@ -9,7 +9,8 @@ import {
   CheckCircle2, 
   Clock, 
   Sparkles,
-  Users
+  Users,
+  Image as ImageIcon
 } from 'lucide-react';
 
 export default function MurtiBari() {
@@ -26,10 +27,8 @@ export default function MurtiBari() {
   const fetchMurtiBariList = async () => {
     try {
       const response = await API.get('/murti-bari');
-      // Agar backend se data array format me milta hai
       if (Array.isArray(response.data) && response.data.length > 0) {
         setMurtiBariData(response.data);
-        // By default sabse naya ya 2026 select karne ke liye
         const currentActive = response.data.find(item => item.year === 2026) || response.data[0];
         setSelectedYear(currentActive.year);
       }
@@ -82,7 +81,7 @@ export default function MurtiBari() {
             </p>
           </div>
 
-          {/* Clickable Year Tabs */}
+          {/* Clickable Year Tabs - Automatic Dynamic Buttons */}
           {murtiBariData.length > 0 && (
             <div className="bg-black/40 backdrop-blur-md p-2.5 rounded-2xl border border-amber-500/30">
               <span className="text-xs font-bold text-amber-300/80 px-3 py-1 block uppercase tracking-wider mb-1">
@@ -109,7 +108,7 @@ export default function MurtiBari() {
         </div>
       </div>
 
-      {/* 2. Current Selected Year Highlight Card */}
+      {/* 2. Current Selected Year Highlight Card with Image Support */}
       {activeData ? (
         <div className="bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-6 sm:p-8 shadow-xl border border-amber-200 relative overflow-hidden">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-amber-200/60 pb-6 mb-6">
@@ -135,33 +134,53 @@ export default function MurtiBari() {
               {activeData.status === 'Current' || activeData.year === 2026 ? <Clock className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
               {activeData.status || 'संपन्न'}
             </span>
-
           </div>
 
-          {/* Details Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
-              <span className="text-xs font-semibold text-gray-500 block mb-1">अभिभावक / पिता का नाम</span>
-              <p className="text-base font-bold text-gray-800 flex items-center gap-2">
-                <User className="w-4 h-4 text-amber-600" />
-                {activeData.fatherName || 'उपलब्ध नहीं'}
-              </p>
+          {/* Details & Image Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
+                <span className="text-xs font-semibold text-gray-500 block mb-1">अभिभावक / पिता का नाम</span>
+                <p className="text-base font-bold text-gray-800 flex items-center gap-2">
+                  <User className="w-4 h-4 text-amber-600" />
+                  {activeData.fatherName || 'उपलब्ध नहीं'}
+                </p>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
+                <span className="text-xs font-semibold text-gray-500 block mb-1">ग्राम / स्थान</span>
+                <p className="text-base font-bold text-gray-800 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-amber-600" />
+                  {activeData.address || 'पटरीहन (सहार)'}
+                </p>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm sm:col-span-2">
+                <span className="text-xs font-semibold text-gray-500 block mb-1">विशेष विवरण</span>
+                <p className="text-sm font-medium text-amber-950 flex items-start gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  {activeData.notes || activeData.description || 'विशेष विवरण दर्ज नहीं है।'}
+                </p>
+              </div>
             </div>
 
-            <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
-              <span className="text-xs font-semibold text-gray-500 block mb-1">ग्राम / स्थान</span>
-              <p className="text-base font-bold text-gray-800 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-amber-600" />
-                {activeData.address || 'पटरीहन (सहार)'}
-              </p>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm sm:col-span-2 lg:col-span-1">
-              <span className="text-xs font-semibold text-gray-500 block mb-1">विशेष विवरण</span>
-              <p className="text-sm font-medium text-amber-950 flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                {activeData.notes || 'विशेष विवरण दर्ज नहीं है।'}
-              </p>
+            {/* Murti / Host Family Uploaded Photo Display */}
+            <div className="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm flex flex-col items-center justify-center">
+              <span className="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1">
+                <ImageIcon className="w-3.5 h-3.5 text-amber-600" /> मूर्ति / यजमान फोटो
+              </span>
+              {activeData.image || activeData.photo ? (
+                <img 
+                  src={activeData.image || activeData.photo} 
+                  alt="Murti Bari" 
+                  className="w-full h-40 object-cover rounded-xl border border-amber-200 shadow-inner"
+                />
+              ) : (
+                <div className="w-full h-40 bg-amber-50 rounded-xl border border-dashed border-amber-300 flex flex-col items-center justify-center text-amber-800/60 text-xs">
+                  <ImageIcon className="w-8 h-8 mb-1 text-amber-400" />
+                  फोटो उपलब्ध नहीं है
+                </div>
+              )}
             </div>
           </div>
         </div>
