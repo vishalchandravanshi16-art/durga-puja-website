@@ -116,7 +116,7 @@ export default function AdminDashboard({ onLogout }) {
   const handleAddExpense = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/expense', {
+      const response = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
         body: JSON.stringify({ year: expYear, title: expTitle, amount: expAmount, category: expCategory, receiver: expReceiver, date: expDate })
