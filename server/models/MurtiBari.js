@@ -5,7 +5,7 @@ const murtiBariSchema = new mongoose.Schema({
   familyName: { type: String, required: true },
   fatherName: { type: String, default: '' }, // <-- Yeh naya field joda gaya hai
   address: { type: String, default: '' },
-  photo: { type: String, default: '' },
+  image: { type: String, default: '' },
   notes: { type: String, default: '' },
   status: { 
     type: String, 
