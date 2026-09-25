@@ -119,7 +119,7 @@ export default function AdminDashboard({ onLogout }) {
       const response = await fetch('/api/expenses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-        body: JSON.stringify({ year: expYear, title: expTitle, amount: expAmount, category: expCategory, receiver: expReceiver, date: expDate })
+        body: JSON.stringify({ year: expYear, title: expTitle, amount: expAmount, category: expCategory, paidTo: expReceiver, date: expDate })
       });
       const data = await response.json();
       if (response.ok) {
