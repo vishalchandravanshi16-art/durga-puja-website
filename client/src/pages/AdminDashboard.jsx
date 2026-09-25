@@ -81,7 +81,7 @@ export default function AdminDashboard({ onLogout }) {
   // Fetch Messages when Messages tab is active
   useEffect(() => {
     if (activeTab === 'messages') {
-      fetch('/api/contact') // Agar aapka endpoint alag ho jaise '/api/contact', toh yahan change kar sakte hain
+      fetch('/api/contact/all') // Agar aapka endpoint alag ho jaise '/api/contact', toh yahan change kar sakte hain
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
