@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Mail, Phone, Trash2 } from 'lucide-react';
-import API from '../services/api'; // <--- API import kar liya hai taaki Render URL use ho sake
+import API from '../services/api';
 
 export default function AdminMessages() {
   const [messages, setMessages] = useState([]);
@@ -12,7 +12,6 @@ export default function AdminMessages() {
 
   const fetchMessages = async () => {
     try {
-      // Localhost ki jagah ab API instance use ho raha hai
       const res = await API.get('/contact/all');
       setMessages(res.data);
     } catch (err) {
@@ -77,12 +76,12 @@ export default function AdminMessages() {
                     {new Date(msg.createdAt).toLocaleDateString('hi-IN')}
                   </td>
                   <td className="p-3 font-bold text-gray-800">{msg.name}</td>
-                  <td className="p-3 text-amber-700 font-semibold">
+                  <td className="p-3 text-amber-700 font-semibold whitespace-nowrap">
                     <a href={`tel:${msg.phone}`} className="hover:underline flex items-center gap-1">
-                      <Phone className="w-3.5 h-3.5" /> {msg.phone}
+                      <Phone className="w-3.5 h-3.5" /> {msg.phone || 'N/A'}
                     </a>
                   </td>
-                  <td className="p-3 text-gray-600">{msg.address}</td>
+                  <td className="p-3 text-gray-600">{msg.address || 'N/A'}</td>
                   <td className="p-3 text-gray-700 max-w-xs">{msg.message}</td>
                   <td className="p-3 text-center">
                     <button
