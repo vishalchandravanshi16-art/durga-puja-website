@@ -1,10 +1,9 @@
-import mongoose from 'mongoose';
-
 const expenseSchema = new mongoose.Schema({
   year: { type: Number, required: true },
+  title: { type: String, required: true }, // <--- Yeh line jodh dein
   category: { 
     type: String, 
-    required: true
+    required: true 
   },
   amount: { type: Number, required: true, min: 0 },
   date: { type: Date, default: Date.now },
@@ -12,5 +11,3 @@ const expenseSchema = new mongoose.Schema({
   billUrl: { type: String, default: '' },
   description: { type: String, default: '' }
 }, { timestamps: true });
-
-export default mongoose.model('Expense', expenseSchema);
