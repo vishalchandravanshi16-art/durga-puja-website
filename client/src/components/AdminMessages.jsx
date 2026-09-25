@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Mail, Phone, Trash2 } from 'lucide-react';
+import API from '../services/api'; // <--- API import kar liya hai taaki Render URL use ho sake
 
 export default function AdminMessages() {
   const [messages, setMessages] = useState([]);
@@ -11,9 +12,9 @@ export default function AdminMessages() {
 
   const fetchMessages = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/contact/all');
-      const data = await res.json();
-      setMessages(data);
+      // Localhost ki jagah ab API instance use ho raha hai
+      const res = await API.get('/contact/all');
+      setMessages(res.data);
     } catch (err) {
       console.error('Error fetching messages:', err);
     } finally {
@@ -24,11 +25,8 @@ export default function AdminMessages() {
   const handleDelete = async (id) => {
     if (window.confirm('क्या आप इस संदेश को डिलीट करना चाहते हैं?')) {
       try {
-        const res = await fetch(`http://localhost:5000/api/contact/${id}`, {
-          method: 'DELETE',
-        });
-        const data = await res.json();
-        if (data.success) {
+        const res = await API.delete(`/contact/${id}`);
+        if (res.data.success) {
           setMessages(messages.filter((msg) => msg._id !== id));
         } else {
           alert('डिलीट करने में समस्या आई!');
