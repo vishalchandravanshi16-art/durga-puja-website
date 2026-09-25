@@ -13,15 +13,17 @@ export const getMurtiBariList = async (req, res) => {
 // Create a new Murti Bari record
 export const createMurtiBari = async (req, res) => {
   try {
-    // Yahan fatherName aur photo ko bhi destructure kar liya gaya hai
-    const { year, familyName, fatherName, address, photo, status, notes } = req.body;
+    const { year, familyName, fatherName, address, status, notes } = req.body;
+
+    // Agar multer se file aayi hai toh uska path lo, nahi toh req.body.image ya khali string
+    const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image || '');
 
     const newEntry = new MurtiBari({
       year,
       familyName,
-      fatherName, // <-- Yeh yahan pass hona zaroori hai
+      fatherName,
       address,
-      photo,
+      image: imagePath, // Model ke field ke anusaar 'image' ya 'photo' rakhein
       status,
       notes
     });
@@ -36,9 +38,14 @@ export const createMurtiBari = async (req, res) => {
 // Update an existing Murti Bari record
 export const updateMurtiBari = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.image = `/uploads/${req.file.filename}`;
+    }
+
     const updatedEntry = await MurtiBari.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 
