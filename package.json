@@ -4,6 +4,6 @@
   "type": "module",
   "scripts": {
     "build": "cd client && npm install && npm run build",
-    "start": "node server/server.js"
+    "start": "cd client && npm install && npm run build && cd .. && node server/server.js"
   }
 }
