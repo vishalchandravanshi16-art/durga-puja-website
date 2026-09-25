@@ -81,7 +81,7 @@ export default function AdminDashboard({ onLogout }) {
   // Fetch Messages when Messages tab is active
   useEffect(() => {
     if (activeTab === 'messages') {
-      fetch('/api/contact/all') // Agar aapka endpoint alag ho jaise '/api/contact', toh yahan change kar sakte hain
+      fetch('/api/contact/all')
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -179,7 +179,7 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         </div>
 
-        {/* Horizontal Navigation Tabs */}
+        {/* Horizontal Navigation Tabs (1 to 7) */}
         <nav className={`bg-gray-900 text-white px-4 py-2.5 overflow-x-auto flex gap-2 md:flex md:justify-center md:space-x-2 ${mobileMenuOpen ? 'flex flex-col' : 'hidden md:flex'}`}>
           <button onClick={() => { setActiveTab('income'); setMobileMenuOpen(false); }} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap cursor-pointer transition ${activeTab === 'income' ? 'bg-emerald-600 text-white' : 'hover:bg-gray-800 text-gray-300'}`}>
             <DollarSign className="w-4 h-4" /> 1. Income
@@ -598,41 +598,55 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* 7. MESSAGES TAB (Updated with live fetching) */}
+        {/* 7. MESSAGES TAB (Horizontal Table Format) */}
         {activeTab === 'messages' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-4">
-            <h2 className="text-xl font-bold text-teal-800 flex items-center gap-2"><MessageSquare className="w-5 h-5"/> संदेश प्रबंधन (Messages)</h2>
+            <h2 className="text-xl font-bold text-teal-800 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5"/> संदेश प्रबंधन (Messages)
+            </h2>
             <p className="text-sm text-gray-600">यहाँ उपयोगकर्ताओं द्वारा भेजे गए सभी सुझाव और संदेश दिखाई देंगे।</p>
             
-            <div className="space-y-3">
+            <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
               {messagesList.length === 0 ? (
-                <div className="border rounded-xl p-4 text-center text-gray-400 text-sm">
+                <div className="p-6 text-center text-gray-400 text-sm">
                   फिलहाल कोई नया संदेश प्राप्त नहीं हुआ है।
                 </div>
               ) : (
-                messagesList.map((msg) => (
-                  <div key={msg._id || msg.id} className="border p-4 rounded-xl shadow-sm bg-teal-50/20 flex justify-between items-start gap-4">
-                    <div className="space-y-1">
-                     <h4 className="font-bold text-gray-900">{msg.name || 'Shradhalu'}</h4>
-                      <span className="text-xs text-teal-700 font-semibold bg-teal-100 px-2 py-0.5 rounded inline-block mt-1">
-  📞 {msg.phone || 'N/A'}
-</span>
-<span className="text-xs text-gray-600 block mt-1">
-  📍 पता: {msg.address || 'N/A'}
-</span>
-                      <span className="text-[10px] text-gray-400 block">
-                        {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
-                      </span>
-                    </div>
-                    <button 
-                      onClick={() => handleDeleteMessage(msg._id || msg.id)} 
-                      className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"
-                      title="Delete Message"
-                    >
-                      <Trash2 className="w-4 h-4"/>
-                    </button>
-                  </div>
-                ))
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-teal-700 text-white text-xs uppercase tracking-wider">
+                      <th className="p-3">नाम (Name)</th>
+                      <th className="p-3">मोबाइल नंबर</th>
+                      <th className="p-3">पता (Address)</th>
+                      <th className="p-3">आपका संदेश या सुझाव (Message)</th>
+                      <th className="p-3 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 text-sm text-gray-700">
+                    {messagesList.map((msg) => (
+                      <tr key={msg._id || msg.id} className="hover:bg-teal-50/50 transition-colors">
+                        <td className="p-3 font-semibold text-gray-900">{msg.name || 'Shradhalu'}</td>
+                        <td className="p-3 text-teal-700 font-medium">📞 {msg.phone || 'N/A'}</td>
+                        <td className="p-3 text-gray-600">📍 {msg.address || 'N/A'}</td>
+                        <td className="p-3">
+                          <p className="text-gray-800">{msg.message || msg.text || msg.suggestion || 'N/A'}</p>
+                          <span className="text-[10px] text-gray-400 block mt-0.5">
+                            {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
+                          </span>
+                        </td>
+                        <td className="p-3 text-center">
+                          <button
+                            onClick={() => handleDeleteMessage(msg._id || msg.id)}
+                            className="bg-rose-100 text-rose-700 p-2 rounded hover:bg-rose-600 hover:text-white transition-colors cursor-pointer"
+                            title="Delete Message"
+                          >
+                            <Trash2 className="w-4 h-4 mx-auto" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           </div>
