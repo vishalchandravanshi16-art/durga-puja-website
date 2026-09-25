@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   PlusCircle, 
   Trash2, 
-  Edit3, 
   Landmark, 
   Image as ImageIcon, 
   BookOpen, 
@@ -13,9 +12,7 @@ import {
   CreditCard,
   Menu,
   X,
-  Calendar,
-  Phone,
-  FileText
+  Phone
 } from 'lucide-react';
 
 export default function AdminDashboard({ onLogout }) {
@@ -24,71 +21,68 @@ export default function AdminDashboard({ onLogout }) {
 
   // --- 1. Income States ---
   const [incomeList, setIncomeList] = useState([]);
-  const [incYear, setIncYear] = useState('');
-  const [incTitle, setIncTitle] = useState('');
-  const [incAmount, setIncAmount] = useState('');
-  const [incCategory, setIncCategory] = useState('');
-  const [incSource, setIncSource] = useState('');
-  const [incDate, setIncDate] = useState('');
+  const [incYear, setIncYear] = useState('2026');
+  const [incTitle, setIncTitle] = useState('Chanda');
+  const [incAmount, setIncAmount] = useState('5100');
+  const [incCategory, setIncCategory] = useState('Donation');
+  const [incSource, setIncSource] = useState('Ramesh Kumar');
+  const [incDate, setIncDate] = useState('2026-10-01');
 
   // --- 2. Expense States ---
   const [expenseList, setExpenseList] = useState([]);
-  const [expYear, setExpYear] = useState('');
-  const [expTitle, setExpTitle] = useState('');
-  const [expAmount, setExpAmount] = useState('');
-  const [expCategory, setExpCategory] = useState('');
-  const [expReceiver, setExpReceiver] = useState('');
-  const [expDate, setExpDate] = useState('');
+  const [expYear, setExpYear] = useState('2026');
+  const [expTitle, setExpTitle] = useState('Murti Booking');
+  const [expAmount, setExpAmount] = useState('25000');
+  const [expCategory, setExpCategory] = useState('Decoration');
+  const [expReceiver, setExpReceiver] = useState('Artist Sharma');
+  const [expDate, setExpDate] = useState('2026-10-02');
 
   // --- 3. Murti Bari States ---
   const [murtiBariList, setMurtiBariList] = useState([]);
-  const [mbYear, setMbYear] = useState('');
-  const [mbFamilyName, setMbFamilyName] = useState('');
-  const [mbFatherName, setMbFatherName] = useState('');
-  const [mbAddress, setMbAddress] = useState('');
-  const [mbStatus, setMbStatus] = useState('Upcoming');
+  const [mbYear, setMbYear] = useState('2026');
+  const [mbFamilyName, setMbFamilyName] = useState('Gupta Family');
+  const [mbFatherName, setMbFatherName] = useState('Late Ram Sahay');
+  const [mbAddress, setMbAddress] = useState('Baruna');
+  const [mbImage, setMbImage] = useState(null);
+  const [mbStatus, setMbStatus] = useState('Current');
 
   // --- 4. Gallery States ---
   const [galleryList, setGalleryList] = useState([]);
-  const [galYear, setGalYear] = useState('');
+  const [galYear, setGalYear] = useState('2026');
   const [galCategory, setGalCategory] = useState('Maa Durga');
   const [galImageFile, setGalImageFile] = useState(null);
-  const [galTitle, setGalTitle] = useState('');
-  const [galDesc, setGalDesc] = useState('');
+  const [galTitle, setGalTitle] = useState('First Look');
+  const [galDesc, setGalDesc] = useState('Maa Durga divine look during pujan.');
 
   // --- 5. History & Drama States ---
   const [historyList, setHistoryList] = useState([]);
-  const [histYear, setHistYear] = useState('');
-  const [histDayName, setHistDayName] = useState('');
-  const [histDateTime, setHistDateTime] = useState('');
+  const [histYear, setHistYear] = useState('2026');
+  const [histDayName, setHistDayName] = useState('Saptami');
+  const [histDateTime, setHistDateTime] = useState('12 Oct, 7:00 PM');
   const [histCategory, setHistCategory] = useState('Natak');
   const [histImageFile, setHistImageFile] = useState(null);
-  const [histTitle, setHistTitle] = useState('');
-  const [histDesc, setHistDesc] = useState('');
-  const [histCharacters, setHistCharacters] = useState('');
+  const [histTitle, setHistTitle] = useState('Bhakt Prahlad');
+  const [histDesc, setHistDesc] = useState('Adivasi and mythological drama.');
+  const [histCharacters, setHistCharacters] = useState('Rohan as Prahlad');
 
   // --- 6. Committee States ---
   const [committeeList, setCommitteeList] = useState([]);
-  const [commName, setCommName] = useState('');
-  const [commPad, setCommPad] = useState('');
-  const [commMobile, setCommMobile] = useState('');
+  const [commName, setCommName] = useState('Vishal Singh');
+  const [commPad, setCommPad] = useState('Adhyaksh');
+  const [commMobile, setCommMobile] = useState('9876543210');
   const [commPhoto, setCommPhoto] = useState(null);
-  const [commRole, setCommRole] = useState('');
+  const [commRole, setCommRole] = useState('Lead Manager');
 
   // --- 7. Messages States ---
   const [messagesList, setMessagesList] = useState([]);
 
-  // Fetch Messages when Messages tab is active
   useEffect(() => {
     if (activeTab === 'messages') {
       fetch('/api/contact/all')
         .then(res => res.json())
         .then(data => {
-          if (Array.isArray(data)) {
-            setMessagesList(data);
-          } else if (data.messages && Array.isArray(data.messages)) {
-            setMessagesList(data.messages);
-          }
+          if (Array.isArray(data)) setMessagesList(data);
+          else if (data.messages && Array.isArray(data.messages)) setMessagesList(data.messages);
         })
         .catch(err => console.log('Error fetching messages:', err));
     }
@@ -98,57 +92,141 @@ export default function AdminDashboard({ onLogout }) {
     try {
       await fetch(`/api/contact/${id}`, { method: 'DELETE' });
       setMessagesList(messagesList.filter(item => (item._id || item.id) !== id));
-    } catch (err) {
-      console.log('Error deleting message:', err);
-    }
+    } catch (err) { console.log('Error deleting message:', err); }
   };
 
-  // --- Handlers ---
-  const handleAddIncome = (e) => {
+  // --- Handlers with Backend APIs ---
+  const handleAddIncome = async (e) => {
     e.preventDefault();
-    const newItem = { _id: Date.now().toString(), year: incYear, title: incTitle, amount: incAmount, category: incCategory, source: incSource, date: incDate };
-    setIncomeList([newItem, ...incomeList]);
-    setIncYear(''); setIncTitle(''); setIncAmount(''); setIncCategory(''); setIncSource(''); setIncDate('');
+    try {
+      const response = await fetch('/api/income', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({ year: incYear, title: incTitle, amount: incAmount, category: incCategory, source: incSource, date: incDate })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setIncomeList([data, ...incomeList]);
+        alert('Income added successfully!');
+      } else { alert(data.message || 'Error saving income'); }
+    } catch (err) { console.error('Error:', err); }
   };
   const handleDeleteIncome = (id) => setIncomeList(incomeList.filter(item => item._id !== id));
 
-  const handleAddExpense = (e) => {
+  const handleAddExpense = async (e) => {
     e.preventDefault();
-    const newItem = { _id: Date.now().toString(), year: expYear, title: expTitle, amount: expAmount, category: expCategory, receiver: expReceiver, date: expDate };
-    setExpenseList([newItem, ...expenseList]);
-    setExpYear(''); setExpTitle(''); setExpAmount(''); setExpCategory(''); setExpReceiver(''); setExpDate('');
+    try {
+      const response = await fetch('/api/expense', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: JSON.stringify({ year: expYear, title: expTitle, amount: expAmount, category: expCategory, receiver: expReceiver, date: expDate })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setExpenseList([data, ...expenseList]);
+        alert('Expense added successfully!');
+      } else { alert(data.message || 'Error saving expense'); }
+    } catch (err) { console.error('Error:', err); }
   };
   const handleDeleteExpense = (id) => setExpenseList(expenseList.filter(item => item._id !== id));
 
-  const handleAddMurtiBari = (e) => {
+  const handleAddMurtiBari = async (e) => {
     e.preventDefault();
-    const newItem = { _id: Date.now().toString(), year: mbYear, familyName: mbFamilyName, fatherName: mbFatherName, address: mbAddress, status: mbStatus };
-    setMurtiBariList([newItem, ...murtiBariList]);
-    setMbYear(''); setMbFamilyName(''); setMbFatherName(''); setMbAddress(''); setMbStatus('Upcoming');
+    try {
+      const formData = new FormData();
+      formData.append('year', mbYear);
+      formData.append('familyName', mbFamilyName);
+      formData.append('fatherName', mbFatherName);
+      formData.append('address', mbAddress);
+      formData.append('status', mbStatus);
+      if (mbImage) formData.append('image', mbImage);
+
+      const response = await fetch('/api/murtibari', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setMurtiBariList([data, ...murtiBariList]);
+        alert('Murti Bari added successfully!');
+      } else { alert(data.message || 'Error saving Murti Bari'); }
+    } catch (err) { console.error('Error:', err); }
   };
   const handleDeleteMurtiBari = (id) => setMurtiBariList(murtiBariList.filter(item => item._id !== id));
 
-  const handleAddGallery = (e) => {
+  const handleAddGallery = async (e) => {
     e.preventDefault();
-    const newItem = { _id: Date.now().toString(), year: galYear, category: galCategory, title: galTitle, desc: galDesc, imageUrl: galImageFile ? URL.createObjectURL(galImageFile) : '' };
-    setGalleryList([newItem, ...galleryList]);
-    setGalYear(''); setGalTitle(''); setGalDesc(''); setGalImageFile(null);
+    try {
+      const formData = new FormData();
+      formData.append('year', galYear);
+      formData.append('category', galCategory);
+      formData.append('title', galTitle);
+      formData.append('desc', galDesc);
+      if (galImageFile) formData.append('image', galImageFile);
+
+      const response = await fetch('/api/gallery', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setGalleryList([data, ...galleryList]);
+        alert('Photo uploaded successfully!');
+      } else { alert(data.message || 'Error uploading photo'); }
+    } catch (err) { console.error('Error:', err); }
   };
   const handleDeleteGallery = (id) => setGalleryList(galleryList.filter(item => item._id !== id));
 
-  const handleAddHistory = (e) => {
+  const handleAddHistory = async (e) => {
     e.preventDefault();
-    const newItem = { _id: Date.now().toString(), year: histYear, dayName: histDayName, dateTime: histDateTime, category: histCategory, title: histTitle, desc: histDesc, characters: histCharacters, imageUrl: histImageFile ? URL.createObjectURL(histImageFile) : '' };
-    setHistoryList([newItem, ...historyList]);
-    setHistYear(''); setHistDayName(''); setHistDateTime(''); setHistTitle(''); setHistDesc(''); setHistCharacters(''); setHistImageFile(null);
+    try {
+      const formData = new FormData();
+      formData.append('year', histYear);
+      formData.append('dayName', histDayName);
+      formData.append('dateTime', histDateTime);
+      formData.append('category', histCategory);
+      formData.append('title', histTitle);
+      formData.append('desc', histDesc);
+      formData.append('characters', histCharacters);
+      if (histImageFile) formData.append('image', histImageFile);
+
+      const response = await fetch('/api/history', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setHistoryList([data, ...historyList]);
+        alert('History event saved successfully!');
+      } else { alert(data.message || 'Error saving event'); }
+    } catch (err) { console.error('Error:', err); }
   };
   const handleDeleteHistory = (id) => setHistoryList(historyList.filter(item => item._id !== id));
 
-  const handleAddCommittee = (e) => {
+  const handleAddCommittee = async (e) => {
     e.preventDefault();
-    const newItem = { _id: Date.now().toString(), name: commName, pad: commPad, mobile: commMobile, role: commRole, photoUrl: commPhoto ? URL.createObjectURL(commPhoto) : '' };
-    setCommitteeList([newItem, ...committeeList]);
-    setCommName(''); setCommPad(''); setCommMobile(''); setCommRole(''); setCommPhoto(null);
+    try {
+      const formData = new FormData();
+      formData.append('name', commName);
+      formData.append('pad', commPad);
+      formData.append('mobile', commMobile);
+      formData.append('role', commRole);
+      if (commPhoto) formData.append('image', commPhoto);
+
+      const response = await fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCommitteeList([data, ...committeeList]);
+        alert('Committee member added successfully!');
+      } else { alert(data.message || 'Error adding member'); }
+    } catch (err) { console.error('Error:', err); }
   };
   const handleDeleteCommittee = (id) => setCommitteeList(committeeList.filter(item => item._id !== id));
 
@@ -160,11 +238,10 @@ export default function AdminDashboard({ onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Top Header & Horizontal Navigation Bar */}
       <header className="bg-white shadow-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
           <h1 className="font-bold text-xl text-emerald-800 flex items-center gap-2">
-            <Landmark className="w-6 h-6" /> पूजा समिति एडमिन डैशबोर्ड
+            <Landmark className="w-6 h-6" /> Puja Samiti Admin Dashboard
           </h1>
           <div className="flex items-center gap-3">
             <button 
@@ -179,7 +256,6 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         </div>
 
-        {/* Horizontal Navigation Tabs (1 to 7) */}
         <nav className={`bg-gray-900 text-white px-4 py-2.5 overflow-x-auto flex gap-2 md:flex md:justify-center md:space-x-2 ${mobileMenuOpen ? 'flex flex-col' : 'hidden md:flex'}`}>
           <button onClick={() => { setActiveTab('income'); setMobileMenuOpen(false); }} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 whitespace-nowrap cursor-pointer transition ${activeTab === 'income' ? 'bg-emerald-600 text-white' : 'hover:bg-gray-800 text-gray-300'}`}>
             <DollarSign className="w-4 h-4" /> 1. Income
@@ -205,58 +281,24 @@ export default function AdminDashboard({ onLogout }) {
         </nav>
       </header>
 
-      {/* Main Container */}
       <main className="max-w-7xl mx-auto w-full p-4 md:p-6 flex-1">
-
-        {/* 1. INCOME TAB */}
         {activeTab === 'income' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
-            <h2 className="text-xl font-bold text-emerald-800 flex items-center gap-2"><DollarSign className="w-5 h-5"/> आय प्रबंधन (Income Management)</h2>
+            <h2 className="text-xl font-bold text-emerald-800 flex items-center gap-2"><DollarSign className="w-5 h-5"/> Income Management</h2>
             <form onSubmit={handleAddIncome} className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Year (वर्ष)</label>
-                <input type="text" value={incYear} onChange={(e) => setIncYear(e.target.value)} placeholder="जैसे: 2026" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Title (शीर्षक)</label>
-                <input type="text" value={incTitle} onChange={(e) => setIncTitle(e.target.value)} placeholder="शीर्षक लिखें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Amount (राशि ₹)</label>
-                <input type="number" value={incAmount} onChange={(e) => setIncAmount(e.target.value)} placeholder="राशि दर्ज करें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Category (श्रेणी)</label>
-                <input type="text" value={incCategory} onChange={(e) => setIncCategory(e.target.value)} placeholder="श्रेणी टाइप करें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Source / Donor (प्राप्तकर्ता/स्रोत)</label>
-                <input type="text" value={incSource} onChange={(e) => setIncSource(e.target.value)} placeholder="नाम या स्रोत" className="w-full border p-2 rounded bg-white text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Date (दिनांक)</label>
-                <input type="date" value={incDate} onChange={(e) => setIncDate(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" />
-              </div>
-              <div className="md:col-span-3">
-                <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-emerald-700 cursor-pointer">Add Income</button>
-              </div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Year</label><input type="text" value={incYear} onChange={(e) => setIncYear(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Title</label><input type="text" value={incTitle} onChange={(e) => setIncTitle(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Amount (₹)</label><input type="number" value={incAmount} onChange={(e) => setIncAmount(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Category</label><input type="text" value={incCategory} onChange={(e) => setIncCategory(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Source / Donor</label><input type="text" value={incSource} onChange={(e) => setIncSource(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Date</label><input type="date" value={incDate} onChange={(e) => setIncDate(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
+              <div className="md:col-span-3"><button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-emerald-700 cursor-pointer">Add Income</button></div>
             </form>
-
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="bg-emerald-100 text-emerald-900 text-xs uppercase">
-                    <th className="py-2.5 px-4">वर्ष</th>
-                    <th className="py-2.5 px-4">शीर्षक</th>
-                    <th className="py-2.5 px-4">राशि</th>
-                    <th className="py-2.5 px-4">श्रेणी</th>
-                    <th className="py-2.5 px-4">स्रोत</th>
-                    <th className="py-2.5 px-4">दिनांक</th>
-                    <th className="py-2.5 px-4 text-center">Action</th>
-                  </tr>
-                </thead>
+                <thead><tr className="bg-emerald-100 text-emerald-900 text-xs uppercase"><th className="py-2.5 px-4">Year</th><th className="py-2.5 px-4">Title</th><th className="py-2.5 px-4">Amount</th><th className="py-2.5 px-4">Category</th><th className="py-2.5 px-4">Source</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4 text-center">Action</th></tr></thead>
                 <tbody className="divide-y divide-gray-100">
-                  {incomeList.length === 0 ? <tr><td colSpan="7" className="py-4 text-center text-gray-500 text-xs">कोई डेटा नहीं है।</td></tr> :
+                  {incomeList.length === 0 ? <tr><td colSpan="7" className="py-4 text-center text-gray-500 text-xs">No data found.</td></tr> :
                     incomeList.map(item => (
                       <tr key={item._id} className="hover:bg-emerald-50/30">
                         <td className="py-3 px-4 font-bold">{item.year}</td>
@@ -265,9 +307,7 @@ export default function AdminDashboard({ onLogout }) {
                         <td className="py-3 px-4">{item.category}</td>
                         <td className="py-3 px-4">{item.source || '-'}</td>
                         <td className="py-3 px-4">{item.date || '-'}</td>
-                        <td className="py-3 px-4 text-center">
-                          <button onClick={() => handleDeleteIncome(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button>
-                        </td>
+                        <td className="py-3 px-4 text-center"><button onClick={() => handleDeleteIncome(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button></td>
                       </tr>
                     ))
                   }
@@ -277,55 +317,23 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* 2. EXPENSE TAB */}
         {activeTab === 'expense' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
-            <h2 className="text-xl font-bold text-rose-800 flex items-center gap-2"><CreditCard className="w-5 h-5"/> खर्च प्रबंधन (Expense Management)</h2>
+            <h2 className="text-xl font-bold text-rose-800 flex items-center gap-2"><CreditCard className="w-5 h-5"/> Expense Management</h2>
             <form onSubmit={handleAddExpense} className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-rose-50/50 p-4 rounded-xl border border-rose-100">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Year (वर्ष)</label>
-                <input type="text" value={expYear} onChange={(e) => setExpYear(e.target.value)} placeholder="जैसे: 2026" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Title (शीर्षक)</label>
-                <input type="text" value={expTitle} onChange={(e) => setExpTitle(e.target.value)} placeholder="खर्च का शीर्षक" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Amount (राशि ₹)</label>
-                <input type="number" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} placeholder="राशि दर्ज करें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Category (श्रेणी)</label>
-                <input type="text" value={expCategory} onChange={(e) => setExpCategory(e.target.value)} placeholder="श्रेणी टाइप करें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Receiver (भुगतान किसे हुआ)</label>
-                <input type="text" value={expReceiver} onChange={(e) => setExpReceiver(e.target.value)} placeholder="प्राप्तकर्ता का नाम" className="w-full border p-2 rounded bg-white text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Date (दिनांक)</label>
-                <input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" />
-              </div>
-              <div className="md:col-span-3">
-                <button type="submit" className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-rose-700 cursor-pointer">Add Expense</button>
-              </div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Year</label><input type="text" value={expYear} onChange={(e) => setExpYear(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Title</label><input type="text" value={expTitle} onChange={(e) => setExpTitle(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Amount (₹)</label><input type="number" value={expAmount} onChange={(e) => setExpAmount(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Category</label><input type="text" value={expCategory} onChange={(e) => setExpCategory(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Receiver</label><input type="text" value={expReceiver} onChange={(e) => setExpReceiver(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Date</label><input type="date" value={expDate} onChange={(e) => setExpDate(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
+              <div className="md:col-span-3"><button type="submit" className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-rose-700 cursor-pointer">Add Expense</button></div>
             </form>
-
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="bg-rose-100 text-rose-900 text-xs uppercase">
-                    <th className="py-2.5 px-4">वर्ष</th>
-                    <th className="py-2.5 px-4">शीर्षक</th>
-                    <th className="py-2.5 px-4">राशि</th>
-                    <th className="py-2.5 px-4">श्रेणी</th>
-                    <th className="py-2.5 px-4">प्राप्तकर्ता</th>
-                    <th className="py-2.5 px-4">दिनांक</th>
-                    <th className="py-2.5 px-4 text-center">Action</th>
-                  </tr>
-                </thead>
+                <thead><tr className="bg-rose-100 text-rose-900 text-xs uppercase"><th className="py-2.5 px-4">Year</th><th className="py-2.5 px-4">Title</th><th className="py-2.5 px-4">Amount</th><th className="py-2.5 px-4">Category</th><th className="py-2.5 px-4">Receiver</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4 text-center">Action</th></tr></thead>
                 <tbody className="divide-y divide-gray-100">
-                  {expenseList.length === 0 ? <tr><td colSpan="7" className="py-4 text-center text-gray-500 text-xs">कोई डेटा नहीं है।</td></tr> :
+                  {expenseList.length === 0 ? <tr><td colSpan="7" className="py-4 text-center text-gray-500 text-xs">No data found.</td></tr> :
                     expenseList.map(item => (
                       <tr key={item._id} className="hover:bg-rose-50/30">
                         <td className="py-3 px-4 font-bold">{item.year}</td>
@@ -334,9 +342,7 @@ export default function AdminDashboard({ onLogout }) {
                         <td className="py-3 px-4">{item.category}</td>
                         <td className="py-3 px-4">{item.receiver || '-'}</td>
                         <td className="py-3 px-4">{item.date || '-'}</td>
-                        <td className="py-3 px-4 text-center">
-                          <button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button>
-                        </td>
+                        <td className="py-3 px-4 text-center"><button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button></td>
                       </tr>
                     ))
                   }
@@ -346,55 +352,30 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* 3. MURTI BARI TAB */}
         {activeTab === 'murtibari' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
-            <h2 className="text-xl font-bold text-amber-800 flex items-center gap-2"><Landmark className="w-5 h-5"/> मूर्ति बारी जोड़ें (Add Murti Bari)</h2>
+            <h2 className="text-xl font-bold text-amber-800 flex items-center gap-2"><Landmark className="w-5 h-5"/> Murti Bari Management</h2>
             <form onSubmit={handleAddMurtiBari} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Year</label><input type="text" value={mbYear} onChange={(e) => setMbYear(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Family Name</label><input type="text" value={mbFamilyName} onChange={(e) => setMbFamilyName(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Father's Name</label><input type="text" value={mbFatherName} onChange={(e) => setMbFatherName(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Address</label><input type="text" value={mbAddress} onChange={(e) => setMbAddress(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Image File</label><input type="file" accept="image/*" onChange={(e) => setMbImage(e.target.files[0])} className="w-full border p-1.5 rounded bg-white text-sm" /></div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Year (वर्ष)</label>
-                <input type="text" value={mbYear} onChange={(e) => setMbYear(e.target.value)} placeholder="वर्ष लिखें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Family Name (परिवार का नाम)</label>
-                <input type="text" value={mbFamilyName} onChange={(e) => setMbFamilyName(e.target.value)} placeholder="परिवार का नाम" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Father's Name (पिता का नाम)</label>
-                <input type="text" value={mbFatherName} onChange={(e) => setMbFatherName(e.target.value)} placeholder="पिता का नाम" className="w-full border p-2 rounded bg-white text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Address (पता)</label>
-                <input type="text" value={mbAddress} onChange={(e) => setMbAddress(e.target.value)} placeholder="गाँव/पत्ता" className="w-full border p-2 rounded bg-white text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Status (स्थिति)</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Status</label>
                 <select value={mbStatus} onChange={(e) => setMbStatus(e.target.value)} className="w-full border p-2 rounded bg-white text-sm">
                   <option value="Upcoming">Upcoming</option>
                   <option value="Current">Current</option>
                   <option value="Completed">Completed</option>
                 </select>
               </div>
-              <div className="md:col-span-2">
-                <button type="submit" className="bg-amber-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-amber-700 cursor-pointer">Add Murti Bari</button>
-              </div>
+              <div className="md:col-span-2"><button type="submit" className="bg-amber-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-amber-700 cursor-pointer">Add Murti Bari</button></div>
             </form>
-
             <div className="overflow-x-auto">
-              <h3 className="text-sm font-bold text-gray-700 mb-2 uppercase">मूर्ति बारी सूची (Murti Bari List)</h3>
               <table className="w-full text-left border-collapse text-sm">
-                <thead>
-                  <tr className="bg-amber-100 text-amber-900 text-xs uppercase">
-                    <th className="py-2.5 px-4">वर्ष (Year)</th>
-                    <th className="py-2.5 px-4">परिवार का नाम</th>
-                    <th className="py-2.5 px-4">पिता का नाम</th>
-                    <th className="py-2.5 px-4">पता</th>
-                    <th className="py-2.5 px-4">स्थिति</th>
-                    <th className="py-2.5 px-4 text-center">Action</th>
-                  </tr>
-                </thead>
+                <thead><tr className="bg-amber-100 text-amber-900 text-xs uppercase"><th className="py-2.5 px-4">Year</th><th className="py-2.5 px-4">Family Name</th><th className="py-2.5 px-4">Father's Name</th><th className="py-2.5 px-4">Address</th><th className="py-2.5 px-4">Status</th><th className="py-2.5 px-4 text-center">Action</th></tr></thead>
                 <tbody className="divide-y divide-gray-100">
-                  {murtiBariList.length === 0 ? <tr><td colSpan="6" className="py-4 text-center text-gray-500 text-xs">कोई रिकॉर्ड नहीं है।</td></tr> :
+                  {murtiBariList.length === 0 ? <tr><td colSpan="6" className="py-4 text-center text-gray-500 text-xs">No records found.</td></tr> :
                     murtiBariList.map(item => (
                       <tr key={item._id} className="hover:bg-amber-50/30">
                         <td className="py-3 px-4 font-bold">{item.year}</td>
@@ -402,13 +383,9 @@ export default function AdminDashboard({ onLogout }) {
                         <td className="py-3 px-4">{item.fatherName || '-'}</td>
                         <td className="py-3 px-4">{item.address || '-'}</td>
                         <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${item.status === 'Current' ? 'bg-emerald-100 text-emerald-800' : item.status === 'Upcoming' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                            {item.status}
-                          </span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${item.status === 'Current' ? 'bg-emerald-100 text-emerald-800' : item.status === 'Upcoming' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>{item.status}</span>
                         </td>
-                        <td className="py-3 px-4 text-center">
-                          <button onClick={() => handleDeleteMurtiBari(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button>
-                        </td>
+                        <td className="py-3 px-4 text-center"><button onClick={() => handleDeleteMurtiBari(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button></td>
                       </tr>
                     ))
                   }
@@ -418,17 +395,13 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* 4. GALLERY TAB */}
         {activeTab === 'gallery' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
-            <h2 className="text-xl font-bold text-blue-800 flex items-center gap-2"><ImageIcon className="w-5 h-5"/> गैलरी में फोटो जोड़ें (Add Gallery Photo)</h2>
+            <h2 className="text-xl font-bold text-blue-800 flex items-center gap-2"><ImageIcon className="w-5 h-5"/> Gallery Management</h2>
             <form onSubmit={handleAddGallery} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Year</label><input type="text" value={galYear} onChange={(e) => setGalYear(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Year (वर्ष)</label>
-                <input type="text" value={galYear} onChange={(e) => setGalYear(e.target.value)} placeholder="वर्ष लिखें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Category (श्रेणी)</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
                 <select value={galCategory} onChange={(e) => setGalCategory(e.target.value)} className="w-full border p-2 rounded bg-white text-sm">
                   <option value="Maa Durga">Maa Durga</option>
                   <option value="Murti">Murti</option>
@@ -441,25 +414,13 @@ export default function AdminDashboard({ onLogout }) {
                   <option value="Other">Other</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Image File (फोटो चुनें)</label>
-                <input type="file" accept="image/*" onChange={(e) => setGalImageFile(e.target.files[0])} className="w-full border p-1.5 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Title (शीर्षक)</label>
-                <input type="text" value={galTitle} onChange={(e) => setGalTitle(e.target.value)} placeholder="फोटो शीर्षक" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-700 mb-1">Description (विवरण)</label>
-                <textarea value={galDesc} onChange={(e) => setGalDesc(e.target.value)} placeholder="विवरण लिखें" className="w-full border p-2 rounded bg-white text-sm" rows="2"></textarea>
-              </div>
-              <div className="md:col-span-2">
-                <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 cursor-pointer">Upload Photo</button>
-              </div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Image File</label><input type="file" accept="image/*" onChange={(e) => setGalImageFile(e.target.files[0])} className="w-full border p-1.5 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Title</label><input type="text" value={galTitle} onChange={(e) => setGalTitle(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div className="md:col-span-2"><label className="block text-xs font-bold text-gray-700 mb-1">Description</label><textarea value={galDesc} onChange={(e) => setGalDesc(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" rows="2"></textarea></div>
+              <div className="md:col-span-2"><button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-blue-700 cursor-pointer">Upload Photo</button></div>
             </form>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {galleryList.length === 0 ? <p className="text-gray-500 text-xs">कोई फोटो अपलोड नहीं की गई है।</p> :
+              {galleryList.length === 0 ? <p className="text-gray-500 text-xs">No photos uploaded.</p> :
                 galleryList.map(item => (
                   <div key={item._id} className="border rounded-xl p-3 bg-white shadow-sm flex flex-col justify-between">
                     <div>
@@ -476,67 +437,39 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* 5. HISTORY & DRAMA TAB */}
         {activeTab === 'history' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
-            <h2 className="text-xl font-bold text-purple-800 flex items-center gap-2"><BookOpen className="w-5 h-5"/> इतिहास व नाटक कार्यक्रम (History & Drama)</h2>
+            <h2 className="text-xl font-bold text-purple-800 flex items-center gap-2"><BookOpen className="w-5 h-5"/> History & Drama Management</h2>
             <form onSubmit={handleAddHistory} className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Year</label><input type="text" value={histYear} onChange={(e) => setHistYear(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Day Name (Diwas)</label><input type="text" value={histDayName} onChange={(e) => setHistDayName(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Date & Time</label><input type="text" value={histDateTime} onChange={(e) => setHistDateTime(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Year (वर्ष)</label>
-                <input type="text" value={histYear} onChange={(e) => setHistYear(e.target.value)} placeholder="वर्ष लिखें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Diwas / Din ka Naam (दिवस/दिन)</label>
-                <input type="text" value={histDayName} onChange={(e) => setHistDayName(e.target.value)} placeholder="जैसे: सप्तमी / दिन 1" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Date & Time (दिनांक और समय)</label>
-                <input type="text" value={histDateTime} onChange={(e) => setHistDateTime(e.target.value)} placeholder="जैसे: 12 Oct, 7:00 PM" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Category (श्रेणी)</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
                 <select value={histCategory} onChange={(e) => setHistCategory(e.target.value)} className="w-full border p-2 rounded bg-white text-sm">
-                  <option value="Natak">Natak (नाटक)</option>
-                  <option value="Ramlila">Ramlila (रामलीला)</option>
-                  <option value="Balibadh">Balibadh (बलि वध)</option>
-                  <option value="Program">Program (कार्यक्रम)</option>
+                  <option value="Natak">Natak</option>
+                  <option value="Ramlila">Ramlila</option>
+                  <option value="Balibadh">Balibadh</option>
+                  <option value="Program">Program</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Image File (फोटो)</label>
-                <input type="file" accept="image/*" onChange={(e) => setHistImageFile(e.target.files[0])} className="w-full border p-1.5 rounded bg-white text-sm" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Name / Title (नाटक/कार्यक्रम का नाम)</label>
-                <input type="text" value={histTitle} onChange={(e) => setHistTitle(e.target.value)} placeholder="शीर्षक" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-700 mb-1">Sanchipt Vivran (संक्षिप्त विवरण)</label>
-                <textarea value={histDesc} onChange={(e) => setHistDesc(e.target.value)} placeholder="विवरण लिखें" className="w-full border p-2 rounded bg-white text-sm" rows="2"></textarea>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Mukhya Patra (मुख्य पात्र)</label>
-                <input type="text" value={histCharacters} onChange={(e) => setHistCharacters(e.target.value)} placeholder="कलाकारों के नाम" className="w-full border p-2 rounded bg-white text-sm" />
-              </div>
-              <div className="md:col-span-3">
-                <button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-purple-700 cursor-pointer">Save Event</button>
-              </div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Image File</label><input type="file" accept="image/*" onChange={(e) => setHistImageFile(e.target.files[0])} className="w-full border p-1.5 rounded bg-white text-sm" /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Title</label><input type="text" value={histTitle} onChange={(e) => setHistTitle(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div className="md:col-span-2"><label className="block text-xs font-bold text-gray-700 mb-1">Short Description (Sanchipt Vivran)</label><textarea value={histDesc} onChange={(e) => setHistDesc(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" rows="2"></textarea></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Main Characters (Mukhya Patra)</label><input type="text" value={histCharacters} onChange={(e) => setHistCharacters(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
+              <div className="md:col-span-3"><button type="submit" className="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-purple-700 cursor-pointer">Save Event</button></div>
             </form>
-
             <div className="space-y-4">
-              {historyList.length === 0 ? <p className="text-gray-500 text-xs">कोई कार्यक्रम रिकॉर्ड नहीं है।</p> :
+              {historyList.length === 0 ? <p className="text-gray-500 text-xs">No events recorded.</p> :
                 historyList.map(item => (
                   <div key={item._id} className="border rounded-xl p-4 bg-white shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="flex gap-4 items-center">
                       {item.imageUrl && <img src={item.imageUrl} alt={item.title} className="w-24 h-24 object-cover rounded-lg" />}
                       <div>
-                        <div className="flex gap-2 items-center">
-                          <span className="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded">{item.category} ({item.year})</span>
-                          <span className="text-xs text-gray-500">{item.dayName} | {item.dateTime}</span>
-                        </div>
+                        <div className="flex gap-2 items-center"><span className="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded">{item.category} ({item.year})</span><span className="text-xs text-gray-500">{item.dayName} | {item.dateTime}</span></div>
                         <h4 className="font-bold text-gray-900 text-base mt-1">{item.title}</h4>
                         <p className="text-xs text-gray-600 mt-1">{item.desc}</p>
-                        {item.characters && <p className="text-xs text-indigo-700 mt-1 font-semibold">मुख्य पात्र: {item.characters}</p>}
+                        {item.characters && <p className="text-xs text-indigo-700 mt-1 font-semibold">Main Characters: {item.characters}</p>}
                       </div>
                     </div>
                     <button onClick={() => handleDeleteHistory(item._id)} className="bg-rose-100 text-rose-700 p-2 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button>
@@ -547,38 +480,19 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* 6. COMMITTEE TAB */}
         {activeTab === 'committee' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
-            <h2 className="text-xl font-bold text-indigo-800 flex items-center gap-2"><Users className="w-5 h-5"/> कमेटी सदस्य प्रबंधन (Committee Management)</h2>
+            <h2 className="text-xl font-bold text-indigo-800 flex items-center gap-2"><Users className="w-5 h-5"/> Committee Management</h2>
             <form onSubmit={handleAddCommittee} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Member Name (सदस्य का नाम)</label>
-                <input type="text" value={commName} onChange={(e) => setCommName(e.target.value)} placeholder="नाम लिखें" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Pad (पद)</label>
-                <input type="text" value={commPad} onChange={(e) => setCommPad(e.target.value)} placeholder="जैसे: अध्यक्ष, सचिव" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Mobile Number (मोबाइल नंबर)</label>
-                <input type="text" value={commMobile} onChange={(e) => setCommMobile(e.target.value)} placeholder="10 अंक का नंबर" className="w-full border p-2 rounded bg-white text-sm" required />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">File Photo (फोटो)</label>
-                <input type="file" accept="image/*" onChange={(e) => setCommPhoto(e.target.files[0])} className="w-full border p-1.5 rounded bg-white text-sm" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-700 mb-1">Role / Responsibility (भूमिका)</label>
-                <input type="text" value={commRole} onChange={(e) => setCommRole(e.target.value)} placeholder="विवरण लिखें" className="w-full border p-2 rounded bg-white text-sm" />
-              </div>
-              <div className="md:col-span-2">
-                <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-indigo-700 cursor-pointer">Add Member</button>
-              </div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Member Name</label><input type="text" value={commName} onChange={(e) => setCommName(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Pad (Role/Position)</label><input type="text" value={commPad} onChange={(e) => setCommPad(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Mobile Number</label><input type="text" value={commMobile} onChange={(e) => setCommMobile(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
+              <div><label className="block text-xs font-bold text-gray-700 mb-1">Photo</label><input type="file" accept="image/*" onChange={(e) => setCommPhoto(e.target.files[0])} className="w-full border p-1.5 rounded bg-white text-sm" /></div>
+              <div className="md:col-span-2"><label className="block text-xs font-bold text-gray-700 mb-1">Role / Responsibility Description</label><input type="text" value={commRole} onChange={(e) => setCommRole(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
+              <div className="md:col-span-2"><button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-indigo-700 cursor-pointer">Add Member</button></div>
             </form>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {committeeList.length === 0 ? <p className="text-gray-500 text-xs">कोई सदस्य रिकॉर्ड नहीं है।</p> :
+              {committeeList.length === 0 ? <p className="text-gray-500 text-xs">No members found.</p> :
                 committeeList.map(item => (
                   <div key={item._id} className="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -598,25 +512,19 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         )}
 
-        {/* 7. MESSAGES TAB (Horizontal Table Format) */}
         {activeTab === 'messages' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-4">
-            <h2 className="text-xl font-bold text-teal-800 flex items-center gap-2">
-              <MessageSquare className="w-5 h-5"/> संदेश प्रबंधन (Messages)
-            </h2>
-            <p className="text-sm text-gray-600">यहाँ उपयोगकर्ताओं द्वारा भेजे गए सभी सुझाव और संदेश दिखाई देंगे।</p>
-            
+            <h2 className="text-xl font-bold text-teal-800 flex items-center gap-2"><MessageSquare className="w-5 h-5"/> Messages & Suggestions</h2>
+            <p className="text-sm text-gray-600">Yahan users dwara bheje gaye saare messages horizontal table format mein dikhenge.</p>
             <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
               {messagesList.length === 0 ? (
-                <div className="p-6 text-center text-gray-400 text-sm">
-                  फिलहाल कोई नया संदेश प्राप्त नहीं हुआ है।
-                </div>
+                <div className="p-6 text-center text-gray-400 text-sm">Filhal koi naya sandesh praapt nahi hua hai.</div>
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-teal-700 text-white text-xs uppercase tracking-wider">
                       <th className="p-3">नाम (Name)</th>
-                      <th className="p-3">मोबाइल नंबर</th>
+                      <th className="p-3">मोबाइल नंबर (Mobile Number)</th>
                       <th className="p-3">पता (Address)</th>
                       <th className="p-3">आपका संदेश या सुझाव (Message)</th>
                       <th className="p-3 text-center">Action</th>
@@ -630,16 +538,10 @@ export default function AdminDashboard({ onLogout }) {
                         <td className="p-3 text-gray-600">📍 {msg.address || 'N/A'}</td>
                         <td className="p-3">
                           <p className="text-gray-800">{msg.message || msg.text || msg.suggestion || 'N/A'}</p>
-                          <span className="text-[10px] text-gray-400 block mt-0.5">
-                            {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
-                          </span>
+                          <span className="text-[10px] text-gray-400 block mt-0.5">{msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}</span>
                         </td>
                         <td className="p-3 text-center">
-                          <button
-                            onClick={() => handleDeleteMessage(msg._id || msg.id)}
-                            className="bg-rose-100 text-rose-700 p-2 rounded hover:bg-rose-600 hover:text-white transition-colors cursor-pointer"
-                            title="Delete Message"
-                          >
+                          <button onClick={() => handleDeleteMessage(msg._id || msg.id)} className="bg-rose-100 text-rose-700 p-2 rounded hover:bg-rose-600 hover:text-white transition-colors cursor-pointer" title="Delete Message">
                             <Trash2 className="w-4 h-4 mx-auto" />
                           </button>
                         </td>
@@ -651,7 +553,6 @@ export default function AdminDashboard({ onLogout }) {
             </div>
           </div>
         )}
-
       </main>
     </div>
   );
