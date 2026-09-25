@@ -10,7 +10,9 @@ import {
   Clock, 
   Sparkles,
   Users,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Trash2,
+  Edit3
 } from 'lucide-react';
 
 export default function MurtiBari() {
@@ -18,10 +20,29 @@ export default function MurtiBari() {
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(2026);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Admin authentication check (token ke adhar par)
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Edit modal state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [editYear, setEditYear] = useState('');
+  const [editFamilyName, setEditFamilyName] = useState('');
+  const [editFatherName, setEditFatherName] = useState('');
+  const [editAddress, setEditAddress] = useState('');
+  const [editStatus, setEditStatus] = useState('Current');
+  const [editNotes, setEditNotes] = useState('');
+  const [editImageFile, setEditImageFile] = useState(null);
 
   // Backend se live data fetch karna
   useEffect(() => {
     fetchMurtiBariList();
+    // Check if admin token exists
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAdmin(true);
+    }
   }, []);
 
   const fetchMurtiBariList = async () => {
@@ -36,6 +57,69 @@ export default function MurtiBari() {
     } catch (error) {
       console.error("Error fetching murti bari data:", error);
       setLoading(false);
+    }
+  };
+
+  // Delete record function
+  const handleDelete = async (id, e) => {
+    e.stopPropagation(); // Row click hone se rokne ke liye
+    if (window.confirm('Kya aap sach mein is record ko delete karna chahte hain?')) {
+      try {
+        const token = localStorage.getItem('token');
+        await API.delete(`/murti-bari/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        alert('Record successfully delete ho gaya!');
+        fetchMurtiBariList();
+      } catch (error) {
+        console.error('Error deleting record:', error);
+        alert(error.response?.data?.message || 'Delete karne mein error aaya.');
+      }
+    }
+  };
+
+  // Open Edit Modal / Form
+  const handleEditClick = (item, e) => {
+    e.stopPropagation();
+    setEditId(item._id);
+    setEditYear(item.year);
+    setEditFamilyName(item.familyName);
+    setEditFatherName(item.fatherName || '');
+    setEditAddress(item.address || '');
+    setEditStatus(item.status || 'Current');
+    setEditNotes(item.notes || item.description || '');
+    setIsEditing(true);
+  };
+
+  // Submit Updated Data
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      formData.append('year', editYear);
+      formData.append('familyName', editFamilyName);
+      formData.append('fatherName', editFatherName);
+      formData.append('address', editAddress);
+      formData.append('status', editStatus);
+      formData.append('notes', editNotes);
+      if (editImageFile) {
+        formData.append('image', editImageFile);
+      }
+
+      const token = localStorage.getItem('token');
+      await API.put(`/murti-bari/${editId}`, formData, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      alert('Record successfully update ho gaya!');
+      setIsEditing(false);
+      fetchMurtiBariList();
+    } catch (error) {
+      console.error('Error updating record:', error);
+      alert(error.response?.data?.message || 'Update karne mein error aaya.');
     }
   };
 
@@ -63,7 +147,7 @@ export default function MurtiBari() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 py-6 font-sans">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 py-6 font-sans relative">
       
       {/* 1. Header Banner */}
       <div className="bg-gradient-to-r from-red-950 via-amber-900 to-red-950 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-amber-500/30">
@@ -108,7 +192,7 @@ export default function MurtiBari() {
         </div>
       </div>
 
-      {/* 2. Current Selected Year Highlight Card with Image Support */}
+      {/* 2. Current Selected Year Highlight Card with Image Support & Admin Actions */}
       {activeData ? (
         <div className="bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-6 sm:p-8 shadow-xl border border-amber-200 relative overflow-hidden">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-amber-200/60 pb-6 mb-6">
@@ -126,14 +210,34 @@ export default function MurtiBari() {
               </div>
             </div>
 
-            <span className={`px-4 py-2 rounded-full font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm ${
-              activeData.status === 'Current' || activeData.year === 2026
-                ? 'bg-amber-500 text-white border border-amber-400 shadow-amber-500/20 animate-pulse' 
-                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-            }`}>
-              {activeData.status === 'Current' || activeData.year === 2026 ? <Clock className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-              {activeData.status || 'संपन्न'}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={`px-4 py-2 rounded-full font-bold text-xs sm:text-sm flex items-center gap-2 shadow-sm ${
+                activeData.status === 'Current' || activeData.year === 2026
+                  ? 'bg-amber-500 text-white border border-amber-400 shadow-amber-500/20 animate-pulse' 
+                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+              }`}>
+                {activeData.status === 'Current' || activeData.year === 2026 ? <Clock className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                {activeData.status || 'संपन्न'}
+              </span>
+
+              {/* Admin Edit/Delete buttons for active card */}
+              {isAdmin && (
+                <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-amber-200 shadow-sm">
+                  <button 
+                    onClick={(e) => handleEditClick(activeData, e)} 
+                    className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors title='Edit Record'"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={(e) => handleDelete(activeData._id, e)} 
+                    className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors title='Delete Record'"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Details & Image Grid */}
@@ -224,7 +328,8 @@ export default function MurtiBari() {
                 <th className="p-4">परिवार का नाम (Family Name)</th>
                 <th className="p-4">अभिभावक (Father's Name)</th>
                 <th className="p-4">स्थान (Address)</th>
-                <th className="p-4 rounded-r-xl text-right">स्थिति (Status)</th>
+                <th className="p-4">स्थिति (Status)</th>
+                {isAdmin && <th className="p-4 rounded-r-xl text-center">Actions (Admin)</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
@@ -246,7 +351,7 @@ export default function MurtiBari() {
                     <td className="p-4 text-gray-900 font-bold">{row.familyName}</td>
                     <td className="p-4 text-gray-600">{row.fatherName || '-'}</td>
                     <td className="p-4 text-gray-600">{row.address || 'पटरीहन'}</td>
-                    <td className="p-4 text-right">
+                    <td className="p-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
                         row.status === 'Current' || row.year === 2026
                           ? 'bg-amber-500 text-white'
@@ -255,11 +360,31 @@ export default function MurtiBari() {
                         {row.status || 'Completed'}
                       </span>
                     </td>
+                    {isAdmin && (
+                      <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="inline-flex items-center gap-2">
+                          <button 
+                            onClick={(e) => handleEditClick(row, e)}
+                            className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={(e) => handleDelete(row._id, e)}
+                            className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="5" className="p-8 text-center text-gray-500 text-sm">
+                  <td colSpan={isAdmin ? "6" : "5"} className="p-8 text-center text-gray-500 text-sm">
                     कोई रिकॉर्ड नहीं मिला।
                   </td>
                 </tr>
@@ -269,6 +394,109 @@ export default function MurtiBari() {
         </div>
 
       </div>
+
+      {/* Edit Modal Popup */}
+      {isEditing && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-amber-200 relative animate-scaleIn">
+            <h3 className="text-xl font-black text-amber-950 mb-4 flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-amber-600" /> Murti Bari Record Edit Karein
+            </h3>
+
+            <form onSubmit={handleUpdateSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Year</label>
+                <input 
+                  type="number" 
+                  value={editYear} 
+                  onChange={(e) => setEditYear(e.target.value)} 
+                  required 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Family Name</label>
+                <input 
+                  type="text" 
+                  value={editFamilyName} 
+                  onChange={(e) => setEditFamilyName(e.target.value)} 
+                  required 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Father's Name</label>
+                <input 
+                  type="text" 
+                  value={editFatherName} 
+                  onChange={(e) => setEditFatherName(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Address</label>
+                <input 
+                  type="text" 
+                  value={editAddress} 
+                  onChange={(e) => setEditAddress(e.target.value)} 
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Status</label>
+                <select 
+                  value={editStatus} 
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 bg-white"
+                >
+                  <option value="Current">Current</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Upcoming">Upcoming</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Notes / Description</label>
+                <textarea 
+                  value={editNotes} 
+                  onChange={(e) => setEditNotes(e.target.value)} 
+                  rows="2"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500"
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">New Image (Optional)</label>
+                <input 
+                  type="file" 
+                  onChange={(e) => setEditImageFile(e.target.files[0])} 
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button 
+                  type="button" 
+                  onClick={() => setIsEditing(false)}
+                  className="px-5 py-2 bg-gray-100 text-gray-700 font-bold rounded-xl text-sm hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-5 py-2 bg-amber-600 text-white font-bold rounded-xl text-sm hover:bg-amber-700 transition-colors shadow-md shadow-amber-600/20"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
