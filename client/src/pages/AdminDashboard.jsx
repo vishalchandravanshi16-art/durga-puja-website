@@ -306,7 +306,7 @@ export default function AdminDashboard({ onLogout }) {
                         <td className="py-3 px-4 text-emerald-700 font-bold">₹{item.amount}</td>
                         <td className="py-3 px-4">{item.category}</td>
                         <td className="py-3 px-4">{item.source || '-'}</td>
-                        <td className="py-3 px-4">{item.date || '-'}</td>
+                        <td className="py-3 px-4">{item.date ? item.date.split('T')[0] : '-'}</td>
                         <td className="py-3 px-4 text-center"><button onClick={() => handleDeleteIncome(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button></td>
                       </tr>
                     ))
@@ -341,7 +341,7 @@ export default function AdminDashboard({ onLogout }) {
                         <td className="py-3 px-4 text-rose-700 font-bold">₹{item.amount}</td>
                         <td className="py-3 px-4">{item.category}</td>
                         <td className="py-3 px-4">{item.receiver || '-'}</td>
-                        <td className="py-3 px-4">{item.date || '-'}</td>
+                        <td className="py-3 px-4">{item.date ? item.date.split('T')[0] : '-'}</td>
                         <td className="py-3 px-4 text-center"><button onClick={() => handleDeleteExpense(item._id)} className="bg-rose-100 text-rose-700 p-1.5 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button></td>
                       </tr>
                     ))
