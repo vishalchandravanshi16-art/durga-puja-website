@@ -14,7 +14,6 @@ export default function FinancialReport() {
   const fetchFinancialData = async () => {
     setLoading(true);
     try {
-      // Dono routes ko try karte hain taaki 404 ya endpoint mismatch ka chakkar na rahe
       let incomeRes = { data: [] };
       let expenseRes = { data: [] };
 
@@ -29,9 +28,6 @@ export default function FinancialReport() {
       } catch (e) {
         try { expenseRes = await API.get('/expense'); } catch (err) { console.error("Expense fetch failed"); }
       }
-
-      console.log("Fetched Incomes:", incomeRes.data);
-      console.log("Fetched Expenses:", expenseRes.data);
 
       const incomesData = Array.isArray(incomeRes.data) ? incomeRes.data : (incomeRes.data.incomes || incomeRes.data.data || []);
       const expensesData = Array.isArray(expenseRes.data) ? expenseRes.data : (expenseRes.data.expenses || expenseRes.data.data || []);
@@ -67,29 +63,42 @@ export default function FinancialReport() {
   };
 
   // Format and combine data safely
-  const formattedIncomes = incomeList.map(item => ({
-    id: item._id || item.id,
-    title: item.title || item.source || item.category || 'Aay (Income)',
-    category: item.category || 'General',
-    details: item.source || item.details || '-',
-    amount: Number(item.amount || 0),
-    date: item.date || item.createdAt || '2026-01-01',
-    year: String(item.year || (item.date ? item.date.split('-')[0] : '2026')),
-    type: 'income'
-  }));
+  const formattedIncomes = incomeList.map(item => {
+    const rawDate = item.date || item.createdAt || '2026-01-01';
+    const cleanDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+    const extractedYear = String(item.year || cleanDate.split('-')[0] || '2026');
+    return {
+      id: item._id || item.id,
+      title: item.title || item.source || item.category || 'Aay (Income)',
+      category: item.category || 'General',
+      details: item.source || item.details || '-',
+      amount: Number(item.amount || 0),
+      date: cleanDate,
+      year: extractedYear,
+      type: 'income'
+    };
+  });
 
-  const formattedExpenses = expenseList.map(item => ({
-    id: item._id || item.id,
-    title: item.title || item.category || 'Kharch (Expense)',
-    category: item.category || 'General',
-    details: item.paidTo ? `Paid to: ${item.paidTo}` : (item.details || '-'),
-    amount: Number(item.amount || 0),
-    date: item.date || item.createdAt || '2026-01-01',
-    year: String(item.year || (item.date ? item.date.split('-')[0] : '2026')),
-    type: 'expense'
-  }));
+  const formattedExpenses = expenseList.map(item => {
+    const rawDate = item.date || item.createdAt || '2026-01-01';
+    const cleanDate = rawDate.includes('T') ? rawDate.split('T')[0] : rawDate;
+    const extractedYear = String(item.year || cleanDate.split('-')[0] || '2026');
+    return {
+      id: item._id || item.id,
+      title: item.title || item.category || 'Kharch (Expense)',
+      category: item.category || 'General',
+      details: item.paidTo ? `Paid to: ${item.paidTo}` : (item.details || '-'),
+      amount: Number(item.amount || 0),
+      date: cleanDate,
+      year: extractedYear,
+      type: 'expense'
+    };
+  });
 
   const allTransactions = [...formattedIncomes, ...formattedExpenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  // Extract all unique years dynamically from data and sort them descending
+  const availableYears = [...new Set(allTransactions.map(item => item.year))].sort((a, b) => b.localeId ? b.localeCompare(a) : b - a);
 
   const filteredTransactions = selectedYear === 'all' 
     ? allTransactions 
@@ -135,7 +144,7 @@ export default function FinancialReport() {
               >
                 Sabhi (All)
               </button>
-              {['2026', '2025', '2024', '2023'].map((yr) => (
+              {availableYears.map((yr) => (
                 <button
                   key={yr}
                   onClick={() => setSelectedYear(yr)}
@@ -160,7 +169,7 @@ export default function FinancialReport() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-emerald-500 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase">Kul Aay (TOTAL INCOME)</p>
+                <p className="text-xs font-bold text-gray-500 uppercase">Kul Aay / Total Income</p>
                 <h3 className="text-2xl font-extrabold text-emerald-600 mt-1">₹{totalIncome.toLocaleString('hi-IN')}</h3>
               </div>
               <TrendingUp className="w-8 h-8 text-emerald-500" />
@@ -168,7 +177,7 @@ export default function FinancialReport() {
 
             <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-rose-500 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase">Kul Vyay (TOTAL EXPENSE)</p>
+                <p className="text-xs font-bold text-gray-500 uppercase">Kul Vyay / Total Expense</p>
                 <h3 className="text-2xl font-extrabold text-rose-600 mt-1">₹{totalExpense.toLocaleString('hi-IN')}</h3>
               </div>
               <TrendingDown className="w-8 h-8 text-rose-500" />
@@ -176,7 +185,7 @@ export default function FinancialReport() {
 
             <div className="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-amber-500 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase">Antim Sesh (NET BALANCE)</p>
+                <p className="text-xs font-bold text-gray-500 uppercase">Antim Sesh / Net Balance</p>
                 <h3 className="text-2xl font-extrabold text-amber-700 mt-1">₹{netBalance.toLocaleString('hi-IN')}</h3>
               </div>
               <Wallet className="w-8 h-8 text-amber-600" />
