@@ -13,17 +13,21 @@ export const getMurtiBariList = async (req, res) => {
 // Create a new Murti Bari record
 export const createMurtiBari = async (req, res) => {
   try {
+    // Debug ke liye console mein check kar sakte hain kya data aa raha hai
+    console.log("REQ BODY:", req.body);
+    console.log("REQ FILE:", req.file);
+
     const { year, familyName, fatherName, address, status, notes } = req.body;
 
     // Agar multer se file aayi hai toh uska path lo, nahi toh req.body.image ya khali string
     const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image || '');
 
     const newEntry = new MurtiBari({
-      year,
+      year: year ? Number(year) : undefined, // Year ko explicitly number mein convert kiya
       familyName,
       fatherName,
       address,
-      image: imagePath, // Model ke field ke anusaar 'image' ya 'photo' rakhein
+      image: imagePath,
       status,
       notes
     });
@@ -31,6 +35,7 @@ export const createMurtiBari = async (req, res) => {
     const savedEntry = await newEntry.save();
     res.status(201).json(savedEntry);
   } catch (err) {
+    console.error("Error saving Murti Bari:", err.message);
     res.status(400).json({ message: err.message });
   }
 };
@@ -39,6 +44,9 @@ export const createMurtiBari = async (req, res) => {
 export const updateMurtiBari = async (req, res) => {
   try {
     const updateData = { ...req.body };
+    if (req.body.year) {
+      updateData.year = Number(req.body.year);
+    }
     if (req.file) {
       updateData.image = `/uploads/${req.file.filename}`;
     }
