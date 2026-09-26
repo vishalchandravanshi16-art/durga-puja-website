@@ -10,7 +10,7 @@ import MurtiBari from './pages/MurtiBari';
 import Gallery from './pages/Gallery';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
-import PujaHistory from './pages/pujaHistory';
+import PujaHistory from './pages/PujaHistory';
 import Contact from './pages/Contact';
 import { AuthProvider } from './context/AuthContext';
 
