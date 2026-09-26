@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import API from '../services/api'; // Shared API instance import kiya gaya hai
+import GalleryCard from '../components/GalleryCard'; // GalleryCard component import kiya
 
 export default function Gallery() {
   const [years, setYears] = useState([]);
@@ -46,6 +47,29 @@ export default function Gallery() {
   useEffect(() => {
     fetchGalleryData();
   }, [selectedYear, selectedCat]);
+
+  // Gallery Item Delete karne ka function
+  const handleDelete = async (id) => {
+    if (window.confirm("Kya aap sach mein is photo ko delete karna chahte hain?")) {
+      try {
+        await API.delete(`/gallery/${id}`);
+        setPhotos(photos.filter(p => p._id !== id));
+        alert("Photo successfully delete ho gayi!");
+      } catch (error) {
+        console.error("Error deleting photo:", error);
+        alert("Delete karne mein error aaya.");
+      }
+    }
+  };
+
+  // Gallery Item Update karne ka function (Aap chahein toh isme modal ya redirect laga sakte hain)
+  const handleUpdate = (item) => {
+    const newTitle = prompt("Naya title enter karein:", item.title);
+    if (newTitle !== null) {
+      // Yahan aap update API call ya admin dashboard par redirect kar sakte hain
+      alert("Update feature connected! Aap ise Admin Dashboard se bhi manage kar sakte hain.");
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 py-6 font-sans">
@@ -95,23 +119,12 @@ export default function Gallery() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {photos.map((item) => (
-            <div key={item._id} className="group relative bg-white rounded-xl overflow-hidden shadow-md border border-amber-200 hover:shadow-lg transition duration-300">
-              <div className="overflow-hidden h-60 bg-gray-100">
-                <img 
-                  src={item.imageUrl} 
-                  alt={item.title} 
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-300" 
-                  onError={(e)=>{e.target.src='https://via.placeholder.com/400x300?text=Image+Not+Found'}}
-                />
-              </div>
-              <div className="p-4 bg-white">
-                <span className="text-[11px] uppercase font-extrabold text-amber-700 tracking-wider">
-                  {item.year} • {item.category}
-                </span>
-                <h4 className="font-bold text-sm text-gray-900 mt-1">{item.title}</h4>
-                {item.description && <p className="text-xs text-gray-500 mt-1">{item.description}</p>}
-              </div>
-            </div>
+            <GalleryCard 
+              key={item._id} 
+              item={item} 
+              onDelete={handleDelete} 
+              onUpdate={handleUpdate} 
+            />
           ))}
         </div>
       )}
