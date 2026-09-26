@@ -106,7 +106,7 @@ export default function PujaHistory({ isAdmin, onEdit }) {
           वार्षिक नाटक व रामलीला इतिहास
         </h1>
         <p className="text-amber-100 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-          आदिशक्ति नवयुवक संघ (पतरिहा) द्वारा प्रस्तुत किए जाने वाले ऐतिहासिक नाटक एवं रामलीला का विवरण।
+          आदिशक्ति नवयुवक संघ (पतरिहाँ) द्वारा प्रस्तुत किए जाने वाले ऐतिहासिक नाटक एवं रामलीला का विवरण।
         </p>
 
         {/* Year Selector Tabs */}
