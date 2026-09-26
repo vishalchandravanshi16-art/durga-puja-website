@@ -1,4 +1,6 @@
-const incomeschema = new mongoose.Schema({
+import mongoose from 'mongoose';
+
+const incomeSchema = new mongoose.Schema({
   year: { type: Number, required: true },
   title: { type: String, required: true },
   category: { type: String, required: true },
