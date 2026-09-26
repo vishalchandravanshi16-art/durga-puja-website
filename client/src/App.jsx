@@ -10,17 +10,18 @@ import MurtiBari from './pages/MurtiBari';
 import Gallery from './pages/Gallery';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
-import PujaHistory from './pages/PujaHistory';
+import PujaHistory from './pages/pujaHistory';
 import Contact from './pages/Contact';
-import { AuthProvider, useAuth } from './context/AuthContext'; // Agar useAuth hook hai
+import { AuthProvider } from './context/AuthContext';
 
-// Protected Route Component
 const ProtectedRoute = ({ element }) => {
   const token = localStorage.getItem('token');
   return token ? element : <Navigate to="/login" replace />;
 };
 
 export default function App() {
+  const isAdminLoggedIn = !!localStorage.getItem('token');
+
   return (
     <AuthProvider>
       <Router>
@@ -31,13 +32,11 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/committee" element={<Committee />} />
               <Route path="/financials" element={<FinancialReport />} />
-              <Route path="/history" element={<PujaHistory />} />
+              <Route path="/history" element={<PujaHistory isAdmin={isAdminLoggedIn} />} />
               <Route path="/murti-bari" element={<MurtiBari />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login />} />
-              
-              {/* Admin route ko secure kar diya gaya hai */}
               <Route path="/admin" element={<ProtectedRoute element={<AdminDashboard />} />} />
             </Routes>
           </main>
