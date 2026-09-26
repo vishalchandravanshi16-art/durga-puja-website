@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { fetchMembers } from '../services/api';
+import API from '../services/api';
 
 const Committee = () => {
   const [committeeMembers, setCommitteeMembers] = useState([]);
@@ -11,50 +12,46 @@ const Committee = () => {
     const token = localStorage.getItem('token');
     setIsAdmin(!!token);
 
-    const fetchMembers = async () => {
-      try {
-        setLoading(true);
-        const API_BASE_URL = process.env.REACT_APP_API_URL || '';
-        // Ab bina year ke saare members ek sath fetch honge
-        const res = await axios.get(`${API_BASE_URL}/api/members`);
-        
-        if (Array.isArray(res.data)) {
-          setCommitteeMembers(res.data);
-        } else if (res.data && Array.isArray(res.data.members)) {
-          setCommitteeMembers(res.data.members);
-        } else {
-          setCommitteeMembers([]);
-        }
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching committee members:", err);
-        setCommitteeMembers([]);
-        setLoading(false);
-      }
-    };
-    fetchMembers();
+    loadCommitteeMembers();
   }, []);
+
+  const loadCommitteeMembers = async () => {
+    try {
+      setLoading(true);
+      // Apne central api service ka use kiya taaki URL mismatch na ho
+      const res = await fetchMembers();
+      
+      if (Array.isArray(res.data)) {
+        setCommitteeMembers(res.data);
+      } else if (res.data && Array.isArray(res.data.members)) {
+        setCommitteeMembers(res.data.members);
+      } else {
+        setCommitteeMembers([]);
+      }
+    } catch (err) {
+      console.error("Error fetching committee members:", err);
+      setCommitteeMembers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle Delete Member (Admin Only)
   const handleDelete = async (id) => {
-    if (window.confirm("Kya aap sach mein is sadasya ko hatana chahte hain?")) {
+    if (window.confirm("क्या आप सच में इस सदस्य को हटाना चाहते हैं?")) {
       try {
-        const token = localStorage.getItem('token');
-        const API_BASE_URL = process.env.REACT_APP_API_URL || '';
-        await axios.delete(`${API_BASE_URL}/api/members/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        await API.delete(`/members/${id}`);
         setCommitteeMembers(committeeMembers.filter(member => member._id !== id));
-        alert("Sadasya safaltaपूर्वक hata diya gaya!");
+        alert("सदस्य सफलतापूर्वक हटा दिया गया!");
       } catch (err) {
         console.error("Error deleting member:", err);
-        alert("Sadasya hatane mein samasya aayi.");
+        alert("सदस्य हटाने में समस्या आई।");
       }
     }
   };
 
   const handleEdit = (member) => {
-    alert(`Edit feature: Aap ${member.name} ko Admin Dashboard se update kar sakte hain.`);
+    alert(`Edit feature: आप ${member.name} को Admin Dashboard से अपडेट कर सकते हैं।`);
   };
 
   return (
@@ -84,16 +81,19 @@ const Committee = () => {
       {/* Members Grid Container */}
       <div className="max-w-7xl mx-auto">
         {loading ? (
-          <p className="text-center text-amber-400 text-lg font-mono">लोड हो रहा है...</p>
+          <p className="text-center text-amber-400 text-lg font-mono py-12">लोड हो रहा है...</p>
         ) : !Array.isArray(committeeMembers) || committeeMembers.length === 0 ? (
-          <p className="text-center text-slate-400 text-lg">फिलहाल कोई कमेटी सदस्य उपलब्ध नहीं है। कृपया Admin Dashboard से जोड़ें।</p>
+          <div className="text-center py-16 bg-slate-900/50 rounded-2xl border border-slate-800">
+            <p className="text-slate-400 text-lg">फिलहाल कोई कमेटी सदस्य उपलब्ध नहीं है।</p>
+            <p className="text-xs text-amber-500/80 mt-2">कृपया Admin Dashboard से नए सदस्य जोड़ें।</p>
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {committeeMembers.map((member, index) => {
               let imagePath = member.photo || member.image || "";
               imagePath = imagePath.replace(/\\/g, '/');
               
-              const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+              const API_BASE_URL = 'https://durga-puja-app-2026.onrender.com';
               const imageUrl = imagePath 
                 ? (imagePath.startsWith('http') ? imagePath : `${API_BASE_URL}/${imagePath.replace(/^\/+/, '')}`)
                 : "https://via.placeholder.com/150/1e293b/f59e0b?text=Member";
