@@ -12,18 +12,25 @@ export const getMembersByYear = async (req, res) => {
 
 export const createMember = async (req, res) => {
   try {
-    // Cloudinary file check (upload.any() ya upload.single() dono ke liye safe)
     const uploadedFile = req.file || (req.files && req.files.length > 0 ? req.files[0] : null);
     
-    let photoPath = req.body.photo || req.body.image || '';
-    if (uploadedFile) {
-      photoPath = uploadedFile.path; // Cloudinary ka live URL yahan se milega
+    // Agar file upload hui hai toh Cloudinary ka URL hi priority pe rahega
+    let photoPath = 'https://via.placeholder.com/150';
+    if (uploadedFile && uploadedFile.path) {
+      photoPath = uploadedFile.path;
+    } else if (req.body.photo && req.body.photo.startsWith('http')) {
+      photoPath = req.body.photo;
     }
 
     const memberData = {
-      ...req.body,
+      name: req.body.name,
+      position: req.body.position || 'Member',
+      responsibility: req.body.responsibility || 'प्रबंधन / Management',
+      phone: req.body.phone || '',
+      year: req.body.year ? Number(req.body.year) : 2026,
+      order: req.body.order ? Number(req.body.order) : 99,
       photo: photoPath,
-      image: photoPath // Dono field handle karne ke liye taaki mismatch na ho
+      image: photoPath
     };
 
     const member = new CommitteeMember(memberData);
@@ -40,7 +47,7 @@ export const updateMember = async (req, res) => {
     const uploadedFile = req.file || (req.files && req.files.length > 0 ? req.files[0] : null);
     
     let updateData = { ...req.body };
-    if (uploadedFile) {
+    if (uploadedFile && uploadedFile.path) {
       updateData.photo = uploadedFile.path;
       updateData.image = uploadedFile.path;
     }
@@ -58,6 +65,7 @@ export const deleteMember = async (req, res) => {
     await CommitteeMember.findByIdAndDelete(req.params.id);
     res.json({ message: 'Member removed successfully' });
   } catch (err) {
+    console.error("Error status 500:", err);
     res.status(500).json({ message: err.message });
   }
 };
