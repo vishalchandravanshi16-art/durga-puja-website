@@ -5,5 +5,9 @@
   "scripts": {
     "build": "npm install && cd client && npm install && npm run build",
     "start": "node server/server.js"
+  },
+  "dependencies": {
+    "cloudinary": "^1.41.3",
+    "multer-storage-cloudinary": "^4.0.0"
   }
 }
