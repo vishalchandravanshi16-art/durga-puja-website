@@ -4,11 +4,15 @@ import axios from 'axios';
 const Committee = () => {
   const [committeeMembers, setCommitteeMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    // Check if admin is logged in via token
+    const token = localStorage.getItem('token');
+    setIsAdmin(!!token);
+
     const fetchMembers = async () => {
       try {
-        // Backend URL configuration (Production ke liye environment variable ya relative path)
         const API_BASE_URL = process.env.REACT_APP_API_URL || '';
         const res = await axios.get(`${API_BASE_URL}/api/committee`);
         setCommitteeMembers(res.data);
@@ -20,6 +24,30 @@ const Committee = () => {
     };
     fetchMembers();
   }, []);
+
+  // Handle Delete Member (Admin Only)
+  const handleDelete = async (id) => {
+    if (window.confirm("Kya aap sach mein is sadasya ko hatana chahte hain?")) {
+      try {
+        const token = localStorage.getItem('token');
+        const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+        await axios.delete(`${API_BASE_URL}/api/committee/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setCommitteeMembers(committeeMembers.filter(member => member._id !== id));
+        alert("Sadasya safaltaपूर्वक hata diya gaya!");
+      } catch (err) {
+        console.error("Error deleting member:", err);
+        alert("Sadasya hatane mein samasya aayi.");
+      }
+    }
+  };
+
+  // Handle Edit Member (Aap ise apne admin dashboard ya edit modal par redirect kar sakte hain)
+  const handleEdit = (member) => {
+    // Aap chahein toh ise AdminDashboard ya kisi edit form par bhej sakte hain
+    alert(`Edit feature: Aap ${member.name} ko Admin Dashboard se edit kar sakte hain.`);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white py-12 px-4 sm:px-6 lg:px-8 font-sans">
@@ -66,13 +94,13 @@ const Committee = () => {
               return (
                 <div
                   key={member._id || index}
-                  className="relative group rounded-2xl overflow-hidden p-[2px] bg-slate-900 transition-all duration-300 hover:scale-105"
+                  className="relative group rounded-2xl overflow-hidden p-[2px] bg-slate-900 transition-all duration-300 hover:scale-105 flex flex-col justify-between"
                 >
                   {/* Spinning Neon Glowing Cyber Border (Hacker Look) */}
                   <div className="absolute -inset-[100%] animate-spin-border bg-[conic-gradient(from_0deg,#ff0055,#00e5ff,#7600bc,#ff0055)] opacity-80 group-hover:opacity-100 blur-sm"></div>
 
                   {/* Inner Card Body */}
-                  <div className="relative z-10 h-full bg-slate-900/95 backdrop-blur-xl rounded-2xl p-6 flex flex-col items-center justify-between border border-slate-800">
+                  <div className="relative z-10 h-full bg-slate-900/95 backdrop-blur-xl rounded-2xl p-6 flex flex-col items-center justify-between border border-slate-800 w-full">
                     
                     {/* Profile Image with Neon Glow */}
                     <div className="relative w-32 h-32 mb-4">
@@ -106,7 +134,7 @@ const Committee = () => {
                     </div>
 
                     {/* Phone Button */}
-                    <div className="w-full mt-auto">
+                    <div className="w-full mt-auto space-y-2">
                       <a
                         href={`tel:${member.phone}`}
                         className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-amber-300 border border-amber-500/30 rounded-xl font-mono text-sm transition-all duration-300 shadow-inner"
@@ -116,6 +144,24 @@ const Committee = () => {
                         </svg>
                         {member.phone || "उपलब्ध नहीं"}
                       </a>
+
+                      {/* Admin Edit & Delete Buttons (Visible only when logged in) */}
+                      {isAdmin && (
+                        <div className="flex gap-2 w-full pt-1">
+                          <button
+                            onClick={() => handleEdit(member)}
+                            className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(member._id)}
+                            className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                   </div>
