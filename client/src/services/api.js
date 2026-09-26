@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://durga-puja-app-2026.onrender.com/api'
+  baseURL: 'https://durga-puja-app-2026.onrender.com/api',
 });
 
 // Attach JWT token to every request if available
@@ -19,7 +19,15 @@ API.interceptors.request.use(
 );
 
 export const fetchYears = () => API.get('/years');
-export const fetchMembers = (year) => API.get(`/members/year/${year}`);
+
+// FIX: Agar year diya ho toh year wala route, nahi toh saare members ka root route hit karega
+export const fetchMembers = (year) => {
+  if (year) {
+    return API.get(`/members/year/${year}`);
+  }
+  return API.get('/members');
+};
+
 export const fetchFinancialSummary = (year) => API.get(`/expenses/summary/${year}`);
 export const fetchExpenses = (year) => API.get(`/expenses/year/${year}`);
 export const fetchIncome = (year) => API.get(`/incomes/year/${year}`);
@@ -31,7 +39,7 @@ export const addExpenseApi = (data) => API.post('/expenses', data);
 export const addIncomeApi = (data) => API.post('/incomes', data);
 export const addMemberApi = (data) => API.post('/members', data);
 
-// 👇 Yeh naye functions add kar diye hain Contact / Messages ke liye:
+// 👇 Yeh naye functions add kar diye hain Contact / Messages ke Liye:
 export const sendContactMessage = (data) => API.post('/contact/send', data);
 export const fetchContactMessages = () => API.get('/contact');
 
