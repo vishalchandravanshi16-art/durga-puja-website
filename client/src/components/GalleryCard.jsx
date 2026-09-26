@@ -1,9 +1,8 @@
 import React from 'react';
-// Agar aapke AuthContext ka path alag ho toh use apne hisab se adjust kar lena
-import { useAuth } from '../context/AuthContext'; 
 
 export default function GalleryCard({ item, onDelete, onUpdate }) {
-  const { user } = useAuth(); // Admin check karne ke liye
+  // LocalStorage se check karenge ki admin login hai ya nahi (Token hai ya nahi)
+  const isAdmin = Boolean(localStorage.getItem('token'));
 
   return (
     <div className="group relative bg-white rounded-xl overflow-hidden shadow-md border border-amber-200 hover:shadow-lg transition duration-300">
@@ -15,8 +14,8 @@ export default function GalleryCard({ item, onDelete, onUpdate }) {
           onError={(e)=>(e.target.src='https://via.placeholder.com/400x300?text=Image+Not+Found')}
         />
 
-        {/* Delete aur Update Buttons - Sirf Admin ke liye dikhenge */}
-        {user && (
+        {/* Delete aur Update Buttons - Sirf tabhi dikhenge jab Admin logged-in hoga (Token hoga) */}
+        {isAdmin && (
           <div className="absolute top-2 right-2 flex gap-2 opacity-90 group-hover:opacity-100 transition-opacity">
             {onUpdate && (
               <button
