@@ -19,8 +19,8 @@ export const createGalleryItem = async (req, res) => {
       return res.status(400).json({ message: 'Please upload an image file' });
     }
 
-    // Server ka full image URL banayein taaki frontend par photo saaf dikhe
-    const imageUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    // Cloudinary se direct secure URL milta hai req.file.path mein
+    const imageUrl = req.file.path;
 
     const photo = new Gallery({
       year: req.body.year,
