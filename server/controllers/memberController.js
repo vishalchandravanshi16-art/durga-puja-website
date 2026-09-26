@@ -1,9 +1,13 @@
 import CommitteeMember from '../models/CommitteeMember.js';
 
+// Sabhi members ko bina kisi year filter ke fetch karne ke liye
 export const getMembersByYear = async (req, res) => {
   try {
-    const year = Number(req.params.year);
-    const members = await CommitteeMember.find({ year }).sort({ order: 1 });
+    // Agar URL me year aaya hai toh filter karenge, nahi toh saare members bhej denge
+    const year = req.params.year ? Number(req.params.year) : null;
+    let query = year ? { year } : {};
+    
+    const members = await CommitteeMember.find(query).sort({ order: 1 });
     res.json(members);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -14,7 +18,6 @@ export const createMember = async (req, res) => {
   try {
     const uploadedFile = req.file || (req.files && req.files.length > 0 ? req.files[0] : null);
     
-    // Agar file upload hui hai toh Cloudinary ka URL hi priority pe rahega
     let photoPath = 'https://via.placeholder.com/150';
     if (uploadedFile && uploadedFile.path) {
       photoPath = uploadedFile.path;
@@ -24,8 +27,8 @@ export const createMember = async (req, res) => {
 
     const memberData = {
       name: req.body.name,
-      position: req.body.position || 'Member',
-      responsibility: req.body.responsibility || 'प्रबंधन / Management',
+      position: req.body.position || req.body.pad || 'Member',
+      responsibility: req.body.responsibility || req.body.desc || 'प्रबंधन / Management',
       phone: req.body.phone || '',
       year: req.body.year ? Number(req.body.year) : 2026,
       order: req.body.order ? Number(req.body.order) : 99,
