@@ -1,55 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Drama, Sparkles, User, Award, ChevronRight, Clock, Star, ShieldCheck } from 'lucide-react';
+import { Calendar, Drama, Sparkles, User, Award, ChevronRight, Clock, Star, ShieldCheck, Trash2, Edit } from 'lucide-react';
 import API from '../services/api'; // Shared API instance
 
-export default function PujaHistory() {
+export default function PujaHistory({ isAdmin, onEdit }) {
   const [historyList, setHistoryList] = useState([]);
   const [selectedYear, setSelectedYear] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchHistoryData = async () => {
-      try {
-        console.log("Fetching history data from backend...");
-        const response = await API.get('/history');
-        console.log("API Response Data:", response.data);
-        
-        const data = response.data;
-        let parsedData = [];
-        
-        if (Array.isArray(data)) {
-          // Flatten if items contain nested days array
-          parsedData = data.flatMap(item => {
-            if (item.days && Array.isArray(item.days)) {
-              return item.days.map(d => ({
-                ...d,
-                year: item.year || d.year,
-                _id: d._id || item._id
-              }));
-            }
-            return item;
-          });
-        } else if (data && typeof data === 'object') {
-          parsedData = Object.values(data);
-        }
-
-        setHistoryList(parsedData);
-
-        if (parsedData.length > 0) {
-          const years = parsedData.map(item => Number(item.year)).filter(y => !isNaN(y));
-          if (years.length > 0) {
-            setSelectedYear(Math.max(...years));
+  const fetchHistoryData = async () => {
+    try {
+      console.log("Fetching history data from backend...");
+      const response = await API.get('/history');
+      console.log("API Response Data:", response.data);
+      
+      const data = response.data;
+      let parsedData = [];
+      
+      if (Array.isArray(data)) {
+        parsedData = data.flatMap(item => {
+          if (item.days && Array.isArray(item.days)) {
+            return item.days.map(d => ({
+              ...d,
+              year: item.year || d.year,
+              _id: d._id || item._id
+            }));
           }
-        }
-      } catch (error) {
-        console.error("Error fetching history data:", error);
-      } finally {
-        setLoading(false);
+          return item;
+        });
+      } else if (data && typeof data === 'object') {
+        parsedData = Object.values(data);
       }
-    };
 
+      setHistoryList(parsedData);
+
+      if (parsedData.length > 0) {
+        const years = parsedData.map(item => Number(item.year)).filter(y => !isNaN(y));
+        if (years.length > 0 && !selectedYear) {
+          setSelectedYear(Math.max(...years));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching history data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchHistoryData();
   }, []);
+
+  // Delete handler for admin
+  const handleDelete = async (id) => {
+    if (!window.confirm("Kya aap sach mein is history item ko delete karna chahte hain?")) return;
+    try {
+      await API.delete(`/history/${id}`);
+      alert("History safaltaपूर्वक delete ho gayi!");
+      fetchHistoryData();
+    } catch (error) {
+      console.error("Error deleting history:", error);
+      alert("Delete karne mein samasya aayi.");
+    }
+  };
 
   if (loading) {
     return (
@@ -156,21 +168,46 @@ export default function PujaHistory() {
                 const titleVal = day.title || day.shirshak || day.name;
                 const descVal = day.desc || day.description || day.vivaran;
                 const dateVal = day.date || day.tithi;
+                
+                // Handling multiple possible image property keys to avoid blank photos
+                const photoVal = day.photo || day.imageUrl || day.image;
 
                 return (
                   <div 
                     key={day._id || idx}
-                    className={`rounded-2xl p-5 sm:p-6 border transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden ${
+                    className={`rounded-2xl p-5 sm:p-6 border transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden relative ${
                       isRamlila 
                         ? 'bg-gradient-to-r from-amber-50 via-orange-50 to-amber-100 border-amber-400/80' 
                         : 'bg-white border-amber-200/80'
                     }`}
                   >
+                    {/* Admin Actions Overlay (Delete/Update) */}
+                    {isAdmin && (
+                      <div className="absolute top-4 right-4 flex items-center gap-2 z-10 bg-white/90 backdrop-blur-md p-1.5 rounded-xl border border-amber-300 shadow-md">
+                        {onEdit && (
+                          <button 
+                            onClick={() => onEdit(day)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => handleDelete(day._id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+
                     {/* Event Photo Rendering */}
-                    {day.photo && (
+                    {photoVal && (
                       <div className="mb-5 overflow-hidden rounded-xl border border-amber-200 shadow-sm">
                         <img 
-                          src={day.photo} 
+                          src={photoVal} 
                           alt={titleVal || "Karyakram Photo"} 
                           className="w-full h-60 sm:h-80 object-cover hover:scale-105 transition-transform duration-500"
                           onError={(e)=>{e.target.src='https://via.placeholder.com/600x400?text=Image+Not+Found'}}
@@ -294,7 +331,7 @@ export default function PujaHistory() {
 
               <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200/80 text-xs text-amber-900 leading-relaxed">
                 <p className="font-bold mb-1">विशेष सूचना:</p>
-                ग्राम पतरिहा में हर वर्ष शारदीय नवरात्रि के शुभ अवसर पर सांस्कृतिक कार्यक्रम का आयोजन किया जाता है।
+                ग्राम पतरिहाँ में हर वर्ष शारदीय नवरात्रि के शुभ अवसर पर सांस्कृतिक कार्यक्रम का आयोजन किया जाता है।
               </div>
             </div>
           </div>
