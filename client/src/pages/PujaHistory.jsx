@@ -181,13 +181,13 @@ export default function PujaHistory({ isAdmin, onEdit }) {
                         : 'bg-white border-amber-200/80'
                     }`}
                   >
-                    {/* Admin Actions Overlay (Delete/Update) */}
+                    {/* Admin Actions Overlay (Delete/Update) - Visible only when logged in as admin */}
                     {isAdmin && (
                       <div className="absolute top-4 right-4 flex items-center gap-2 z-10 bg-white/90 backdrop-blur-md p-1.5 rounded-xl border border-amber-300 shadow-md">
                         {onEdit && (
                           <button 
                             onClick={() => onEdit(day)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                             title="Edit"
                           >
                             <Edit className="w-4 h-4" />
@@ -195,7 +195,7 @@ export default function PujaHistory({ isAdmin, onEdit }) {
                         )}
                         <button 
                           onClick={() => handleDelete(day._id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
