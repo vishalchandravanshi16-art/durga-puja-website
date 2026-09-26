@@ -464,17 +464,7 @@ export default function AdminDashboard({ onLogout }) {
                 historyList.map(item => (
                   <div key={item._id} className="border rounded-xl p-4 bg-white shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
                     <div className="flex gap-4 items-center">
-                      {(item.imageUrl || item.image) && (
-  <img 
-    src={
-      (item.imageUrl || item.image).startsWith('http') 
-        ? (item.imageUrl || item.image) 
-        : `http://localhost:5000/${item.imageUrl || item.image}`
-    } 
-    alt={item.title || "Event Photo"} 
-    className="w-24 h-24 object-cover rounded-lg" 
-  />
-)}
+                      {(item.imageUrl || item.image) && <img src={item.imageUrl || item.image} alt={item.title || "Event Photo"} className="w-24 h-24 object-cover rounded-lg" />}
                       <div>
                         <div className="flex gap-2 items-center"><span className="text-xs font-bold bg-purple-100 text-purple-800 px-2 py-0.5 rounded">{item.category} ({item.year})</span><span className="text-xs text-gray-500">{item.dayName} | {item.dateTime}</span></div>
                         <h4 className="font-bold text-gray-900 text-base mt-1">{item.title}</h4>
