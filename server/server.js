@@ -31,9 +31,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// Serve Uploads Folder statically so images are publicly accessible
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 // Routes Mapping
 app.use('/api/auth', authRoutes);
 
