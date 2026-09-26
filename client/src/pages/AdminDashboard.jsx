@@ -224,7 +224,7 @@ export default function AdminDashboard({ onLogout }) {
       });
       const data = await response.json();
       if (response.ok) {
-        setCommitteeList([data, ...committeeList]);
+        setCommitteelist([data.saved || data, ...committeelist]);
         alert('Committee member added successfully!');
       } else {
         alert(data.message || 'Error adding member');
@@ -499,12 +499,12 @@ export default function AdminDashboard({ onLogout }) {
                 committeeList.map(item => (
                   <div key={item._id} className="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <img src={item.photoUrl || 'https://via.placeholder.com/150'} alt={item.name} className="w-16 h-16 object-cover rounded-full border" />
+                     <img src={item.photo || item.image || 'https://via.placeholder.com/150'} alt={item.name} className="w-16 h-16 object-cover rounded-full border" />
                       <div>
                         <h4 className="font-bold text-gray-900">{item.name}</h4>
-                        <p className="text-xs font-bold text-indigo-700">{item.pad}</p>
-                        <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3"/> {item.mobile}</p>
-                        {item.role && <p className="text-xs text-gray-500 mt-0.5">{item.role}</p>}
+                        <p className="text-xs font-bold text-indigo-700">{item.position}</p>
+                        <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3"/> {item.phone}</p>
+                        {item.responsibility && <p className="text-xs text-gray-500 mt-0.5">{item.responsibility}</p>}
                       </div>
                     </div>
                     <button onClick={() => handleDeleteCommittee(item._id)} className="bg-rose-100 text-rose-700 p-2 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button>
