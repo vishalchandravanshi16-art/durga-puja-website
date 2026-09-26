@@ -14,14 +14,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 2. Add new history / drama event (Bulletproof with upload.any())
+// 2. Add new history / drama event
 router.post('/', upload.any(), async (req, res) => {
   try {
     const { year, theme, director, dayName, dayNumber, date, type, category, title, desc, description, cast, maincast } = req.body;
     
-    // Check if any file was uploaded
+    // Check if any file was uploaded -> Cloudinary gives full URL in .path
     const uploadedFile = req.files && req.files.length > 0 ? req.files[0] : null;
-    const photoUrl = uploadedFile ? `/uploads/${uploadedFile.filename}` : '';
+    const photoUrl = uploadedFile ? uploadedFile.path : ''; // Yahan .path use karna hai!
 
     const newHistory = new History({
       year,
@@ -37,7 +37,9 @@ router.post('/', upload.any(), async (req, res) => {
     });
 
     const savedHistory = await newHistory.save();
-    res.status(201).json({ message: "नया कार्यक्रम सफलतापूर्वक जोड़ा गया!", savedHistory });
+    // Frontend me agar data.data ya data.savedHistory expect kar rahe hain, 
+    // toh hum dono bhej dete hain taaki kahin mismatch na ho:
+    res.status(201).json({ message: "नया कार्यक्रम सफलतापूर्वक जोड़ा गया!", data: savedHistory, savedHistory });
   } catch (error) {
     console.error("History Save Error:", error);
     res.status(400).json({ message: error.message });
@@ -63,7 +65,7 @@ router.put('/:id', upload.any(), async (req, res) => {
 
     const uploadedFile = req.files && req.files.length > 0 ? req.files[0] : null;
     if (uploadedFile) {
-      updateData.photo = `/uploads/${uploadedFile.filename}`;
+      updateData.photo = uploadedFile.path; // Yahan bhi .path use karna hai!
     }
 
     const updatedHistory = await History.findByIdAndUpdate(
