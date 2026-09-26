@@ -1,21 +1,9 @@
 import express from 'express';
 import Gallery from '../models/Gallery.js';
 import { protect } from '../middleware/authMiddleware.js';
-import multer from 'multer';
-import path from 'path';
+import upload from '../middleware/upload.js'; // Cloudinary wala upload middleware import kiya
 
 const router = express.Router();
-
-// Multer Storage Setup: फोटो को सर्वर के अंदर 'uploads/' फोल्डर में सेव करने के लिए
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); 
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  }
-});
-const upload = multer({ storage: storage });
 
 // 1. Get All Gallery Photos (Public - कोई भी देख सकता है)
 router.get('/', async (req, res) => {
@@ -27,13 +15,17 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 2. Add Gallery Photo with File Upload (Protected - सिर्फ लॉगिन यूजर इमेज अपलोड कर पाएगा)
+// 2. Add Gallery Photo with Cloudinary Upload (Protected - सिर्फ लॉगिन यूजर इमेज अपलोड कर पाएगा)
 router.post('/', protect, upload.single('image'), async (req, res) => {
   try {
     const { year, category, title, description } = req.body;
     
-    // अगर फाइल अपलोड हुई है, तो उसका लोकल URL पाथ तैयार करें
-    const imageUrl = req.file ? `http://localhost:5000/uploads/${req.file.filename}` : '';
+    // Cloudinary se direct secure URL milta hai req.file.path mein
+    const imageUrl = req.file ? req.file.path : '';
+
+    if (!imageUrl) {
+      return res.status(400).json({ message: 'Please upload an image file' });
+    }
 
     const newGallery = new Gallery({
       year: Number(year),
