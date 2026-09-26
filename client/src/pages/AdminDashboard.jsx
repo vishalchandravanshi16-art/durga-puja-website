@@ -185,7 +185,7 @@ export default function AdminDashboard({ onLogout }) {
       const formData = new FormData();
       formData.append('year', histYear);
       formData.append('dayName', histDayName);
-      formData.append('dateTime', histDateTime);
+      formData.append('date', histDateTime);
       formData.append('category', histCategory);
       formData.append('title', histTitle);
       formData.append('desc', histDesc);
