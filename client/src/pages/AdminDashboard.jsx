@@ -162,7 +162,7 @@ export default function AdminDashboard({ onLogout }) {
       formData.append('year', galYear);
       formData.append('category', galCategory);
       formData.append('title', galTitle);
-      formData.append('desc', galDesc);
+      formData.append('description', galDesc);
       if (galImageFile) formData.append('image', galImageFile);
 
       const response = await fetch('/api/gallery', {
@@ -172,7 +172,7 @@ export default function AdminDashboard({ onLogout }) {
       });
       const data = await response.json();
       if (response.ok) {
-        setGalleryList([data, ...galleryList]);
+        setGalleryList([data.data, ...galleryList]);
         alert('Photo uploaded successfully!');
       } else { alert(data.message || 'Error uploading photo'); }
     } catch (err) { console.error('Error:', err); }
@@ -427,7 +427,7 @@ export default function AdminDashboard({ onLogout }) {
                       {item.imageUrl && <img src={item.imageUrl} alt={item.title} className="w-full h-36 object-cover rounded-lg mb-2" />}
                       <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{item.category} ({item.year})</span>
                       <h4 className="font-bold text-gray-900 mt-1">{item.title}</h4>
-                      <p className="text-xs text-gray-600 mt-1">{item.desc}</p>
+                      <p className="text-xs text-gray-600 mt-1">{item.description}</p>
                     </div>
                     <button onClick={() => handleDeleteGallery(item._id)} className="mt-3 bg-rose-100 text-rose-700 py-1 rounded text-xs font-bold hover:bg-rose-600 hover:text-white cursor-pointer flex items-center justify-center gap-1"><Trash2 className="w-3.5 h-3.5"/> Delete</button>
                   </div>
