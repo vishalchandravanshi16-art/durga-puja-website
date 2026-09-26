@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import API from '../services/api'; // Shared API instance import kiya gaya hai
+import API from '../services/api';
 import { 
   Crown, 
   Calendar, 
@@ -21,10 +21,8 @@ export default function MurtiBari() {
   const [selectedYear, setSelectedYear] = useState(2026);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Admin authentication check (token ke adhar par)
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Edit modal state
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [editYear, setEditYear] = useState('');
@@ -35,10 +33,10 @@ export default function MurtiBari() {
   const [editNotes, setEditNotes] = useState('');
   const [editImageFile, setEditImageFile] = useState(null);
 
-  // Backend se live data fetch karna
+  const backendUrl = 'https://durga-puja-app-2026.onrender.com';
+
   useEffect(() => {
     fetchMurtiBariList();
-    // Check if admin token exists
     const token = localStorage.getItem('token');
     if (token) {
       setIsAdmin(true);
@@ -60,9 +58,8 @@ export default function MurtiBari() {
     }
   };
 
-  // Delete record function
   const handleDelete = async (id, e) => {
-    e.stopPropagation(); // Row click hone se rokne ke liye
+    e.stopPropagation();
     if (window.confirm('Kya aap sach mein is record ko delete karna chahte hain?')) {
       try {
         const token = localStorage.getItem('token');
@@ -78,7 +75,6 @@ export default function MurtiBari() {
     }
   };
 
-  // Open Edit Modal / Form
   const handleEditClick = (item, e) => {
     e.stopPropagation();
     setEditId(item._id);
@@ -91,7 +87,6 @@ export default function MurtiBari() {
     setIsEditing(true);
   };
 
-  // Submit Updated Data
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -123,10 +118,13 @@ export default function MurtiBari() {
     }
   };
 
-  // Chunahu saal ya default data
   const activeData = murtiBariData.find(item => item.year === selectedYear) || murtiBariData[0];
 
-  // Search filter
+  const getImageUrl = (imgPath) => {
+    if (!imgPath) return null;
+    return imgPath.startsWith('http') ? imgPath : `${backendUrl}/${imgPath}`;
+  };
+
   const filteredList = murtiBariData.filter(item => {
     const fNameText = item.familyName || '';
     const fatherText = item.fatherName || '';
@@ -165,7 +163,6 @@ export default function MurtiBari() {
             </p>
           </div>
 
-          {/* Clickable Year Tabs - Automatic Dynamic Buttons */}
           {murtiBariData.length > 0 && (
             <div className="bg-black/40 backdrop-blur-md p-2.5 rounded-2xl border border-amber-500/30">
               <span className="text-xs font-bold text-amber-300/80 px-3 py-1 block uppercase tracking-wider mb-1">
@@ -192,7 +189,7 @@ export default function MurtiBari() {
         </div>
       </div>
 
-      {/* 2. Current Selected Year Highlight Card with Image Support & Admin Actions */}
+      {/* 2. Current Selected Year Highlight Card */}
       {activeData ? (
         <div className="bg-gradient-to-br from-amber-50 via-white to-orange-50 rounded-3xl p-6 sm:p-8 shadow-xl border border-amber-200 relative overflow-hidden">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-amber-200/60 pb-6 mb-6">
@@ -220,18 +217,19 @@ export default function MurtiBari() {
                 {activeData.status || 'संपन्न'}
               </span>
 
-              {/* Admin Edit/Delete buttons for active card */}
               {isAdmin && (
                 <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-amber-200 shadow-sm">
                   <button 
                     onClick={(e) => handleEditClick(activeData, e)} 
-                    className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors title='Edit Record'"
+                    className="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                    title="Edit Record"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={(e) => handleDelete(activeData._id, e)} 
-                    className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors title='Delete Record'"
+                    className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                    title="Delete Record"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -240,7 +238,6 @@ export default function MurtiBari() {
             </div>
           </div>
 
-          {/* Details & Image Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
@@ -268,14 +265,13 @@ export default function MurtiBari() {
               </div>
             </div>
 
-            {/* Murti / Host Family Uploaded Photo Display */}
             <div className="bg-white p-3 rounded-2xl border border-amber-100 shadow-sm flex flex-col items-center justify-center">
               <span className="text-xs font-semibold text-gray-500 mb-2 flex items-center gap-1">
                 <ImageIcon className="w-3.5 h-3.5 text-amber-600" /> मूर्ति / यजमान फोटो
               </span>
-              {activeData.image || activeData.photo ? (
+              {getImageUrl(activeData.image || activeData.photo) ? (
                 <img 
-                  src={activeData.image || activeData.photo} 
+                  src={getImageUrl(activeData.image || activeData.photo)} 
                   alt="Murti Bari" 
                   className="w-full h-40 object-cover rounded-xl border border-amber-200 shadow-inner"
                 />
@@ -296,7 +292,6 @@ export default function MurtiBari() {
 
       {/* 3. Complete Year-by-Year Table Section */}
       <div className="bg-white rounded-3xl p-6 shadow-xl border border-amber-100 space-y-6">
-        
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
           <div>
             <h3 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
@@ -306,7 +301,6 @@ export default function MurtiBari() {
             <p className="text-xs text-gray-500 mt-0.5">नाम या वर्ष लिखकर आसानी से खोजें</p>
           </div>
 
-          {/* Search Input */}
           <div className="relative w-full sm:w-72">
             <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -319,7 +313,6 @@ export default function MurtiBari() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -392,7 +385,6 @@ export default function MurtiBari() {
             </tbody>
           </table>
         </div>
-
       </div>
 
       {/* Edit Modal Popup */}
@@ -502,7 +494,6 @@ export default function MurtiBari() {
   );
 }
 
-// Helper function to sort years descending
 function murthiSort(data) {
   return [...data].sort((a, b) => b.year - a.year);
 }
