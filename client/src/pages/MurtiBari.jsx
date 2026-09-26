@@ -60,7 +60,7 @@ export default function MurtiBari() {
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
-    if (window.confirm('Kya aap sach mein is record ko delete karna chahte hain?')) {
+    if (window.confirm('Kya aap sach mein is record को delete karna chahte hain?')) {
       try {
         const token = localStorage.getItem('token');
         await API.delete(`/murti-bari/${id}`, {
@@ -122,7 +122,15 @@ export default function MurtiBari() {
 
   const getImageUrl = (imgPath) => {
     if (!imgPath) return null;
-    return imgPath.startsWith('http') ? imgPath : `${backendUrl}/${imgPath}`;
+    
+    if (imgPath.startsWith('http')) {
+      return encodeURI(imgPath);
+    }
+    
+    const cleanPath = imgPath.startsWith('/') ? imgPath.slice(1) : imgPath;
+    const finalPath = cleanPath.startsWith('uploads/') ? cleanPath : `uploads/${cleanPath}`;
+
+    return encodeURI(`${backendUrl}/${finalPath}`);
   };
 
   const filteredList = murtiBariData.filter(item => {
