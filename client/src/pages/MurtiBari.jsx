@@ -161,7 +161,7 @@ export default function MurtiBari() {
               मूर्ति निर्माण की बारी (Murti Bari)
             </h1>
             <p className="text-amber-100/80 text-sm sm:text-base mt-1">
-              आदेशाशक्ति नवयुवक संघ (पटरीहन) - प्रतिवर्ष मूर्ति निर्माण एवं यजमान सेवा की प्रामाणिक सूची
+              आदेशाशक्ति नवयुवक संघ (पतरिहाँ) - प्रतिवर्ष मूर्ति निर्माण एवं यजमान सेवा की प्रामाणिक सूची
             </p>
           </div>
 
@@ -255,7 +255,7 @@ export default function MurtiBari() {
                 <span className="text-xs font-semibold text-gray-500 block mb-1">ग्राम / स्थान</span>
                 <p className="text-base font-bold text-gray-800 flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-amber-600" />
-                  {activeData.address || 'पटरीहन (सहार)'}
+                  {activeData.address || 'पतरिहाँ(सहार)'}
                 </p>
               </div>
 
@@ -350,7 +350,7 @@ export default function MurtiBari() {
                     </td>
                     <td className="p-4 text-gray-900 font-bold">{row.familyName}</td>
                     <td className="p-4 text-gray-600">{row.fatherName || '-'}</td>
-                    <td className="p-4 text-gray-600">{row.address || 'पटरीहन'}</td>
+                    <td className="p-4 text-gray-600">{row.address || 'पतरिहाँ'}</td>
                     <td className="p-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
                         row.status === 'Current' || row.year === 2026
