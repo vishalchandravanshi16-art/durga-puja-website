@@ -60,7 +60,7 @@ export default function MurtiBari() {
 
   const handleDelete = async (id, e) => {
     e.stopPropagation();
-    if (window.confirm('Kya aap sach mein is record को delete karna chahte hain?')) {
+    if (window.confirm('Kya aap sach mein is record ko delete karna chahte hain?')) {
       try {
         const token = localStorage.getItem('token');
         await API.delete(`/murti-bari/${id}`, {
@@ -123,14 +123,20 @@ export default function MurtiBari() {
   const getImageUrl = (imgPath) => {
     if (!imgPath) return null;
     
-    if (imgPath.startsWith('http')) {
-      return encodeURI(imgPath);
+    // Windows backslashes (\) ko forward slashes (/) mein convert karein
+    let formattedPath = imgPath.replace(/\\/g, '/');
+
+    if (formattedPath.startsWith('http')) {
+      return encodeURI(formattedPath);
     }
     
-    const cleanPath = imgPath.startsWith('/') ? imgPath.slice(1) : imgPath;
-    const finalPath = cleanPath.startsWith('uploads/') ? cleanPath : `uploads/${cleanPath}`;
+    // Leading slashes ya 'uploads/' repetition ko clean karein
+    formattedPath = formattedPath.replace(/^\/+/, '');
+    if (formattedPath.startsWith('uploads/')) {
+      formattedPath = formattedPath.replace('uploads/', '');
+    }
 
-    return encodeURI(`${backendUrl}/${finalPath}`);
+    return encodeURI(`${backendUrl}/uploads/${formattedPath}`);
   };
 
   const filteredList = murtiBariData.filter(item => {
