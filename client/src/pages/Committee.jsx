@@ -5,7 +5,6 @@ const Committee = () => {
   const [committeeMembers, setCommitteeMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(2026); // Default year 2026
 
   useEffect(() => {
     // Check if admin is logged in via token
@@ -16,9 +15,9 @@ const Committee = () => {
       try {
         setLoading(true);
         const API_BASE_URL = process.env.REACT_APP_API_URL || '';
-        const res = await axios.get(`${API_BASE_URL}/api/members/${selectedYear}`);
+        // Ab bina year ke saare members ek sath fetch honge
+        const res = await axios.get(`${API_BASE_URL}/api/members`);
         
-        // Safe check: Ensure data is an array before setting state
         if (Array.isArray(res.data)) {
           setCommitteeMembers(res.data);
         } else if (res.data && Array.isArray(res.data.members)) {
@@ -34,7 +33,7 @@ const Committee = () => {
       }
     };
     fetchMembers();
-  }, [selectedYear]);
+  }, []);
 
   // Handle Delete Member (Admin Only)
   const handleDelete = async (id) => {
@@ -55,7 +54,7 @@ const Committee = () => {
   };
 
   const handleEdit = (member) => {
-    alert(`Edit feature: Aap ${member.name} ko Admin Dashboard se edit kar sakte hain.`);
+    alert(`Edit feature: Aap ${member.name} ko Admin Dashboard se update kar sakte hain.`);
   };
 
   return (
@@ -71,7 +70,7 @@ const Committee = () => {
       `}</style>
 
       {/* Header Banner */}
-      <div className="max-w-7xl mx-auto text-center mb-8">
+      <div className="max-w-7xl mx-auto text-center mb-10">
         <div className="bg-gradient-to-r from-red-900 via-amber-900 to-red-900 border-2 border-amber-500/50 rounded-2xl p-6 shadow-[0_0_25px_rgba(245,158,11,0.3)]">
           <h1 className="text-3xl sm:text-5xl font-black text-amber-300 tracking-wide drop-shadow-md">
             आदिशक्ति नवयुवक संघ दुर्गा पूजा समिति
@@ -82,29 +81,12 @@ const Committee = () => {
         </div>
       </div>
 
-      {/* Year Selector Tabs */}
-      <div className="max-w-7xl mx-auto flex justify-center mb-8 gap-4">
-        {[2026, 2027, 2028].map((yr) => (
-          <button
-            key={yr}
-            onClick={() => setSelectedYear(yr)}
-            className={`px-6 py-2 rounded-xl font-bold transition-all ${
-              selectedYear === yr
-                ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30'
-                : 'bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800'
-            }`}
-          >
-            वर्ष {yr}
-          </button>
-        ))}
-      </div>
-
       {/* Members Grid Container */}
       <div className="max-w-7xl mx-auto">
         {loading ? (
           <p className="text-center text-amber-400 text-lg font-mono">लोड हो रहा है...</p>
         ) : !Array.isArray(committeeMembers) || committeeMembers.length === 0 ? (
-          <p className="text-center text-slate-400 text-lg">वर्ष {selectedYear} के लिए कोई कमेटी सदस्य उपलब्ध नहीं है।</p>
+          <p className="text-center text-slate-400 text-lg">फिलहाल कोई कमेटी सदस्य उपलब्ध नहीं है। कृपया Admin Dashboard से जोड़ें।</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {committeeMembers.map((member, index) => {
@@ -145,13 +127,15 @@ const Committee = () => {
                         {member.name}
                       </h3>
                       
+                      {/* Pad / Role Position */}
                       <div className="inline-block px-3 py-1 bg-amber-500/10 border border-amber-500/40 rounded-full mb-2">
                         <span className="text-xs font-semibold text-amber-300">
-                          {member.position || member.role}
+                          {member.position || member.role || "पद उपलब्ध नहीं"}
                         </span>
                       </div>
 
-                      <p className="text-xs text-slate-400 mb-4 h-8 flex items-center justify-center">
+                      {/* Responsibility Description */}
+                      <p className="text-xs text-slate-400 mb-4 min-h-[2rem] flex items-center justify-center">
                         {member.responsibility || member.desc || "समिति के सक्रिय सदस्य"}
                       </p>
                     </div>
@@ -165,9 +149,10 @@ const Committee = () => {
                         <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                           <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.11-.27c1.12.45 2.33.69 3.48.69a1 1 0 011 1v3.5a1 1 0 01-1 1C10.77 22 2 13.93 2 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.15.24 2.36.69 3.48a1 1 0 01-.27 1.1l-2.2 2.21z"/>
                         </svg>
-                        {member.phone || "उपलब्ध नहीं"}
+                        {member.phone || "मोबाइल उपलब्ध नहीं"}
                       </a>
 
+                      {/* Admin Delete & Edit Controls */}
                       {isAdmin && (
                         <div className="flex gap-2 w-full pt-1">
                           <button
