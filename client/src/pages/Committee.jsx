@@ -16,12 +16,20 @@ const Committee = () => {
       try {
         setLoading(true);
         const API_BASE_URL = process.env.REACT_APP_API_URL || '';
-        // Sahi API route jisme year pass hota hai
         const res = await axios.get(`${API_BASE_URL}/api/members/${selectedYear}`);
-        setCommitteeMembers(res.data);
+        
+        // Safe check: Ensure data is an array before setting state
+        if (Array.isArray(res.data)) {
+          setCommitteeMembers(res.data);
+        } else if (res.data && Array.isArray(res.data.members)) {
+          setCommitteeMembers(res.data.members);
+        } else {
+          setCommitteeMembers([]);
+        }
         setLoading(false);
       } catch (err) {
         console.error("Error fetching committee members:", err);
+        setCommitteeMembers([]);
         setLoading(false);
       }
     };
@@ -95,7 +103,7 @@ const Committee = () => {
       <div className="max-w-7xl mx-auto">
         {loading ? (
           <p className="text-center text-amber-400 text-lg font-mono">लोड हो रहा है...</p>
-        ) : committeeMembers.length === 0 ? (
+        ) : !Array.isArray(committeeMembers) || committeeMembers.length === 0 ? (
           <p className="text-center text-slate-400 text-lg">वर्ष {selectedYear} के लिए कोई कमेटी सदस्य उपलब्ध नहीं है।</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
