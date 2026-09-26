@@ -188,7 +188,7 @@ export default function AdminDashboard({ onLogout }) {
       formData.append('date', histDateTime);
       formData.append('category', histCategory);
       formData.append('title', histTitle);
-      formData.append('desc', histDesc);
+      formData.append('description', histDesc);
       formData.append('characters', histCharacters);
       if (histImageFile) formData.append('image', histImageFile);
 
@@ -199,7 +199,7 @@ export default function AdminDashboard({ onLogout }) {
       });
       const data = await response.json();
       if (response.ok) {
-        setHistoryList([data, ...historyList]);
+        setHistoryList([data.data, ...historyList]);
         alert('History event saved successfully!');
       } else { alert(data.message || 'Error saving event'); }
     } catch (err) { console.error('Error:', err); }
