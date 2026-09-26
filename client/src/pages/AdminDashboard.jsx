@@ -206,14 +206,15 @@ export default function AdminDashboard({ onLogout }) {
   };
   const handleDeleteHistory = (id) => setHistoryList(historyList.filter(item => item._id !== id));
 
-  const handleAddCommittee = async (e) => {
+ const handleAddCommittee = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData();
       formData.append('name', commName);
-      formData.append('pad', commPad);
-      formData.append('mobile', commMobile);
-      formData.append('role', commRole);
+      formData.append('position', commPad || commRole); // Backend ke mutabiq position field
+      formData.append('year', 2026); // Yahan year bhi zaroori hai (aap chahein toh dropdown se bhi state le sakte hain)
+      formData.append('phone', commMobile);
+      formData.append('responsibility', commRole); // agar responsibility field hai toh
       if (commPhoto) formData.append('image', commPhoto);
 
       const response = await fetch('/api/members', {
@@ -225,7 +226,9 @@ export default function AdminDashboard({ onLogout }) {
       if (response.ok) {
         setCommitteeList([data, ...committeeList]);
         alert('Committee member added successfully!');
-      } else { alert(data.message || 'Error adding member'); }
+      } else {
+        alert(data.message || 'Error adding member');
+      }
     } catch (err) { console.error('Error:', err); }
   };
   const handleDeleteCommittee = (id) => setCommitteeList(committeeList.filter(item => item._id !== id));
