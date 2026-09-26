@@ -13,17 +13,16 @@ export const getMurtiBariList = async (req, res) => {
 // Create a new Murti Bari record
 export const createMurtiBari = async (req, res) => {
   try {
-    // Debug ke liye console mein check kar sakte hain kya data aa raha hai
     console.log("REQ BODY:", req.body);
     console.log("REQ FILE:", req.file);
 
     const { year, familyName, fatherName, address, status, notes } = req.body;
 
-    // Agar multer se file aayi hai toh uska path lo, nahi toh req.body.image ya khali string
-    const imagePath = req.file ? `/uploads/${req.file.filename}` : (req.body.image || '');
+    // Cloudinary se direct secure URL milta hai req.file.path mein
+    const imagePath = req.file ? req.file.path : (req.body.image || '');
 
     const newEntry = new MurtiBari({
-      year: year ? Number(year) : undefined, // Year ko explicitly number mein convert kiya
+      year: year ? Number(year) : undefined,
       familyName,
       fatherName,
       address,
@@ -47,8 +46,10 @@ export const updateMurtiBari = async (req, res) => {
     if (req.body.year) {
       updateData.year = Number(req.body.year);
     }
+    
+    // Agar nayi file aayi hai toh Cloudinary ka path set karo
     if (req.file) {
-      updateData.image = `/uploads/${req.file.filename}`;
+      updateData.image = req.file.path;
     }
 
     const updatedEntry = await MurtiBari.findByIdAndUpdate(
