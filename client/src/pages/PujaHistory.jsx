@@ -169,8 +169,11 @@ export default function PujaHistory({ isAdmin, onEdit }) {
                 const descVal = day.desc || day.description || day.vivaran;
                 const dateVal = day.date || day.tithi;
                 
-                // Handling multiple possible image property keys to avoid blank photos
-                const photoVal = day.photo || day.imageUrl || day.image;
+                // Handling image URL with Render fallback support
+                const rawPhoto = day.photo || day.imageUrl || day.image;
+                const photoVal = rawPhoto 
+                  ? (rawPhoto.startsWith('http') ? rawPhoto : `https://durga-puja-app-2026.onrender.com/${rawPhoto.replace(/^\/+/, '')}`)
+                  : null;
 
                 return (
                   <div 
@@ -181,7 +184,7 @@ export default function PujaHistory({ isAdmin, onEdit }) {
                         : 'bg-white border-amber-200/80'
                     }`}
                   >
-                    {/* Admin Actions Overlay (Delete/Update) - Visible only when logged in as admin */}
+                    {/* Admin Actions Overlay */}
                     {isAdmin && (
                       <div className="absolute top-4 right-4 flex items-center gap-2 z-10 bg-white/90 backdrop-blur-md p-1.5 rounded-xl border border-amber-300 shadow-md">
                         {onEdit && (
@@ -203,17 +206,23 @@ export default function PujaHistory({ isAdmin, onEdit }) {
                       </div>
                     )}
 
-                    {/* Event Photo Rendering */}
-                    {photoVal && (
-                      <div className="mb-5 overflow-hidden rounded-xl border border-amber-200 shadow-sm">
+                    {/* Event Photo Rendering or Clean Fallback Banner */}
+                    <div className="mb-5 overflow-hidden rounded-xl border border-amber-200 shadow-sm bg-gradient-to-r from-amber-900 to-red-950 flex items-center justify-center">
+                      {photoVal ? (
                         <img 
                           src={photoVal} 
                           alt={titleVal || "Karyakram Photo"} 
                           className="w-full h-60 sm:h-80 object-cover hover:scale-105 transition-transform duration-500"
-                          onError={(e)=>{e.target.src='https://via.placeholder.com/600x400?text=Image+Not+Found'}}
+                          onError={(e)=>{e.target.style.display='none';}}
                         />
-                      </div>
-                    )}
+                      ) : (
+                        <div className="w-full h-40 sm:h-48 flex flex-col items-center justify-center text-amber-200 p-4 text-center">
+                          <Drama className="w-12 h-12 mb-2 text-amber-400 opacity-80" />
+                          <span className="text-sm font-semibold tracking-wide">आदिशक्ति नवयुवक संघ (पतरिहाँ)</span>
+                          <span className="text-xs text-amber-300/80 mt-1">वर्ष {selectedYear} - {titleVal || "सांस्कृतिक कार्यक्रम"}</span>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Top Badges */}
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
