@@ -501,65 +501,43 @@ const handleAddCommittee = async (e) => {
             </div>
           </div>
         )}
-{activeTab === 'committee' && (
+
+       {activeTab === 'committee' && (
   <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
     <h2 className="text-xl font-bold text-indigo-800 flex items-center gap-2">Committee Management</h2>
     
+    {/* Committee Add Form */}
     <form onSubmit={handleAddCommittee} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
       <div>
         <label className="block text-xs font-bold text-gray-700 mb-1">Member Name</label>
-        <input 
-          type="text" 
-          value={commName} 
-          onChange={(e) => setCommName(e.target.value)} 
-          className="w-full p-2 border rounded-lg text-sm bg-white" 
-          required 
-        />
+        <input type="text" value={commName} onChange={(e) => setCommName(e.target.value)} className="w-full p-2 border rounded-lg text-sm bg-white" required />
       </div>
       <div>
         <label className="block text-xs font-bold text-gray-700 mb-1">Pad (Role/Position)</label>
-        <input 
-          type="text" 
-          value={commPad} 
-          onChange={(e) => setCommPad(e.target.value)} 
-          className="w-full p-2 border rounded-lg text-sm bg-white" 
-        />
+        <input type="text" value={commPad} onChange={(e) => setCommPad(e.target.value)} className="w-full p-2 border rounded-lg text-sm bg-white" />
       </div>
       <div>
         <label className="block text-xs font-bold text-gray-700 mb-1">Mobile Number</label>
-        <input 
-          type="text" 
-          value={commMobile} 
-          onChange={(e) => setCommMobile(e.target.value)} 
-          className="w-full p-2 border rounded-lg text-sm bg-white" 
-        />
+        <input type="text" value={commMobile} onChange={(e) => setCommMobile(e.target.value)} className="w-full p-2 border rounded-lg text-sm bg-white" />
       </div>
       <div>
         <label className="block text-xs font-bold text-gray-700 mb-1">Role / Responsibility Description</label>
-        <input 
-          type="text" 
-          value={commRole} 
-          onChange={(e) => setCommRole(e.target.value)} 
-          className="w-full p-2 border rounded-lg text-sm bg-white" 
-        />
+        <input type="text" value={commRole} onChange={(e) => setCommRole(e.target.value)} className="w-full p-2 border rounded-lg text-sm bg-white" />
       </div>
       <div className="md:col-span-2">
         <label className="block text-xs font-bold text-gray-700 mb-1">Photo</label>
-        <input 
-          type="file" 
-          accept="image/*" 
-          onChange={(e) => setCommPhoto(e.target.files[0])} 
-          className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" 
-        />
+        <input type="file" accept="image/*" onChange={(e) => setCommPhoto(e.target.files[0])} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
       </div>
       <div className="md:col-span-2">
         <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-indigo-700 transition">
-          Add Committee Member
+          Add Member
         </button>
       </div>
     </form>
-           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      {committeelist.length === 0 ? (
+
+    {/* Committee List Grid */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {!Array.isArray(committeelist) || committeelist.length === 0 ? (
         <p className="text-gray-500 text-sm">No members found.</p>
       ) : (
         committeelist.map((item) => (
@@ -573,9 +551,7 @@ const handleAddCommittee = async (e) => {
               <div>
                 <h4 className="font-bold text-gray-900">{item.name}</h4>
                 <p className="text-xs font-bold text-indigo-700">{item.position}</p>
-                <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
-                  <span>📞</span> {item.phone}
-                </p>
+                <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">📞 {item.phone}</p>
                 {item.responsibility && (
                   <p className="text-xs text-gray-500 mt-0.5">{item.responsibility}</p>
                 )}
@@ -584,7 +560,6 @@ const handleAddCommittee = async (e) => {
             <button 
               onClick={() => handleDeleteCommittee(item._id || item.id)} 
               className="bg-rose-100 text-rose-700 p-2 rounded hover:bg-rose-600 hover:text-white transition"
-              title="Delete Member"
             >
               🗑️
             </button>
