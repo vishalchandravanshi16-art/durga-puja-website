@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchMembers } from '../services/api';
-import API from '../services/api';
+import API, { fetchMembers } from '../services/api';
 
 const Committee = () => {
   const [committeeMembers, setCommitteeMembers] = useState([]);
@@ -9,22 +8,39 @@ const Committee = () => {
 
   useEffect(() => {
     // Check if admin is logged in via token
-    const token = localStorage.getItem('token');
-    setIsAdmin(!!token);
+    const checkAdminStatus = () => {
+      const token = localStorage.getItem('token');
+      setIsAdmin(!!token);
+    };
 
+    checkAdminStatus();
     loadCommitteeMembers();
+
+    // Listen to storage changes for instant login/logout sync
+    window.addEventListener('storage', checkAdminStatus);
+    return () => {
+      window.removeEventListener('storage', checkAdminStatus);
+    };
   }, []);
 
   const loadCommitteeMembers = async () => {
     try {
       setLoading(true);
-      // Apne central api service ka use kiya taaki URL mismatch na ho
-      const res = await fetchMembers();
+      // Try fetching via fetchMembers service or direct API fallback
+      let res;
+      try {
+        res = await fetchMembers();
+      } catch (err) {
+        res = await API.get('/members');
+      }
       
-      if (Array.isArray(res.data)) {
-        setCommitteeMembers(res.data);
-      } else if (res.data && Array.isArray(res.data.members)) {
-        setCommitteeMembers(res.data.members);
+      const data = res?.data;
+      if (Array.isArray(data)) {
+        setCommitteeMembers(data);
+      } else if (data && Array.isArray(data.members)) {
+        setCommitteeMembers(data.members);
+      } else if (data && Array.isArray(data.data)) {
+        setCommitteeMembers(data.data);
       } else {
         setCommitteeMembers([]);
       }
@@ -41,7 +57,7 @@ const Committee = () => {
     if (window.confirm("क्या आप सच में इस सदस्य को हटाना चाहते हैं?")) {
       try {
         await API.delete(`/members/${id}`);
-        setCommitteeMembers(committeeMembers.filter(member => member._id !== id));
+        setCommitteeMembers(committeeMembers.filter(member => member._id !== id && member.id !== id));
         alert("सदस्य सफलतापूर्वक हटा दिया गया!");
       } catch (err) {
         console.error("Error deleting member:", err);
@@ -51,7 +67,7 @@ const Committee = () => {
   };
 
   const handleEdit = (member) => {
-    alert(`Edit feature: आप ${member.name} को Admin Dashboard से अपडेट कर सकते हैं।`);
+    alert(`Edit feature: आप ${member.name} को Admin Dashboard के Committee tab से मैनेज कर सकते हैं।`);
   };
 
   return (
@@ -85,7 +101,7 @@ const Committee = () => {
         ) : !Array.isArray(committeeMembers) || committeeMembers.length === 0 ? (
           <div className="text-center py-16 bg-slate-900/50 rounded-2xl border border-slate-800">
             <p className="text-slate-400 text-lg">फिलहाल कोई कमेटी सदस्य उपलब्ध नहीं है।</p>
-            <p className="text-xs text-amber-500/80 mt-2">कृपया Admin Dashboard से नए सदस्य जोड़ें।</p>
+            <p className="text-xs text-amber-500/80 mt-2">कृपया Admin Dashboard से नए सदस्य जोड़ें।</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -100,7 +116,7 @@ const Committee = () => {
 
               return (
                 <div
-                  key={member._id || index}
+                  key={member._id || member.id || index}
                   className="relative group rounded-2xl overflow-hidden p-[2px] bg-slate-900 transition-all duration-300 hover:scale-105 flex flex-col justify-between"
                 >
                   <div className="absolute -inset-[100%] animate-spin-border bg-[conic-gradient(from_0deg,#ff0055,#00e5ff,#7600bc,#ff0055)] opacity-80 group-hover:opacity-100 blur-sm"></div>
@@ -152,7 +168,7 @@ const Committee = () => {
                         {member.phone || "मोबाइल उपलब्ध नहीं"}
                       </a>
 
-                      {/* Admin Delete & Edit Controls */}
+                      {/* Admin Delete & Edit Controls (Only visible when logged in) */}
                       {isAdmin && (
                         <div className="flex gap-2 w-full pt-1">
                           <button
@@ -162,7 +178,7 @@ const Committee = () => {
                             Edit
                           </button>
                           <button
-                            onClick={() => handleDelete(member._id)}
+                            onClick={() => handleDelete(member._id || member.id)}
                             className="flex-1 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all shadow"
                           >
                             Delete
