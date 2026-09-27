@@ -238,9 +238,9 @@ const handleAddCommittee = async (e) => {
       const res = await fetch('/api/members');
       const membersData = await res.json();
       if (Array.isArray(membersData)) {
-        setCommitteelist(membersData);
+        setCommitteeList(membersData);
       } else if (membersData.success && Array.isArray(membersData.data)) {
-        setCommitteelist(membersData.data);
+        setCommitteeList(membersData.data);
       }
 
     } else {
