@@ -206,31 +206,50 @@ export default function AdminDashboard({ onLogout }) {
   };
   const handleDeleteHistory = (id) => setHistoryList(historyList.filter(item => item._id !== id));
 
- const handleAddCommittee = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append('name', commName);
-      formData.append('position', commPad || commRole); // Backend ke mutabiq position field
-      formData.append('year', 2026); // Yahan year bhi zaroori hai (aap chahein toh dropdown se bhi state le sakte hain)
-      formData.append('phone', commMobile);
-      formData.append('responsibility', commRole); // agar responsibility field hai toh
-      if (commPhoto) formData.append('image', commPhoto);
+const handleAddCommittee = async (e) => {
+  e.preventDefault();
+  try {
+    const formData = new FormData();
+    formData.append('name', commName);
+    formData.append('position', commPad || commRole); 
+    formData.append('year', 2026); 
+    formData.append('phone', commMobile);
+    formData.append('responsibility', commRole); 
+    if (commPhoto) formData.append('image', commPhoto);
 
-      const response = await fetch('/api/members', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-        body: formData
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setCommitteelist([data.saved || data, ...committeelist]);
-        alert('Committee member added successfully!');
-      } else {
-        alert(data.message || 'Error adding member');
+    const response = await fetch('/api/members', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+      body: formData
+    });
+    const data = await response.json();
+    if (response.ok) {
+      alert('Committee member added successfully!');
+      
+      // Form fields ko clear karne ke liye
+      setCommName('');
+      setCommPad('');
+      setCommMobile('');
+      setCommRole('');
+      setCommPhoto(null);
+
+      // --- YAHAN MAIN FIX HAI ---
+      // Member add hote hi server se fresh list dobara fetch kar lenge taaki turant screen par dikhe
+      const res = await fetch('/api/members');
+      const membersData = await res.json();
+      if (Array.isArray(membersData)) {
+        setCommitteelist(membersData);
+      } else if (membersData.success && Array.isArray(membersData.data)) {
+        setCommitteelist(membersData.data);
       }
-    } catch (err) { console.error('Error:', err); }
-  };
+
+    } else {
+      alert(data.message || 'Error adding member');
+    }
+  } catch (err) { 
+    console.error('Error:', err); 
+  }
+};
   const handleDeleteCommittee = (id) => setCommitteeList(committeeList.filter(item => item._id !== id));
 
   const handleLogoutClick = () => {
@@ -482,38 +501,99 @@ export default function AdminDashboard({ onLogout }) {
             </div>
           </div>
         )}
-
-        {activeTab === 'committee' && (
-          <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
-            <h2 className="text-xl font-bold text-indigo-800 flex items-center gap-2"><Users className="w-5 h-5"/> Committee Management</h2>
-            <form onSubmit={handleAddCommittee} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
-              <div><label className="block text-xs font-bold text-gray-700 mb-1">Member Name</label><input type="text" value={commName} onChange={(e) => setCommName(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
-              <div><label className="block text-xs font-bold text-gray-700 mb-1">Pad (Role/Position)</label><input type="text" value={commPad} onChange={(e) => setCommPad(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
-              <div><label className="block text-xs font-bold text-gray-700 mb-1">Mobile Number</label><input type="text" value={commMobile} onChange={(e) => setCommMobile(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" required /></div>
-              <div><label className="block text-xs font-bold text-gray-700 mb-1">Photo</label><input type="file" accept="image/*" onChange={(e) => setCommPhoto(e.target.files[0])} className="w-full border p-1.5 rounded bg-white text-sm" /></div>
-              <div className="md:col-span-2"><label className="block text-xs font-bold text-gray-700 mb-1">Role / Responsibility Description</label><input type="text" value={commRole} onChange={(e) => setCommRole(e.target.value)} className="w-full border p-2 rounded bg-white text-sm" /></div>
-              <div className="md:col-span-2"><button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-indigo-700 cursor-pointer">Add Member</button></div>
-            </form>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {committeeList.length === 0 ? <p className="text-gray-500 text-xs">No members found.</p> :
-                committeeList.map(item => (
-                  <div key={item._id} className="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                     <img src={item.photo || item.image || 'https://via.placeholder.com/150'} alt={item.name} className="w-16 h-16 object-cover rounded-full border" />
-                      <div>
-                        <h4 className="font-bold text-gray-900">{item.name}</h4>
-                        <p className="text-xs font-bold text-indigo-700">{item.position}</p>
-                        <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3"/> {item.phone}</p>
-                        {item.responsibility && <p className="text-xs text-gray-500 mt-0.5">{item.responsibility}</p>}
-                      </div>
-                    </div>
-                    <button onClick={() => handleDeleteCommittee(item._id)} className="bg-rose-100 text-rose-700 p-2 rounded hover:bg-rose-600 hover:text-white cursor-pointer"><Trash2 className="w-4 h-4"/></button>
-                  </div>
-                ))
-              }
+{activeTab === 'committee' && (
+  <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
+    <h2 className="text-xl font-bold text-indigo-800 flex items-center gap-2">Committee Management</h2>
+    
+    <form onSubmit={handleAddCommittee} className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+      <div>
+        <label className="block text-xs font-bold text-gray-700 mb-1">Member Name</label>
+        <input 
+          type="text" 
+          value={commName} 
+          onChange={(e) => setCommName(e.target.value)} 
+          className="w-full p-2 border rounded-lg text-sm bg-white" 
+          required 
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-bold text-gray-700 mb-1">Pad (Role/Position)</label>
+        <input 
+          type="text" 
+          value={commPad} 
+          onChange={(e) => setCommPad(e.target.value)} 
+          className="w-full p-2 border rounded-lg text-sm bg-white" 
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-bold text-gray-700 mb-1">Mobile Number</label>
+        <input 
+          type="text" 
+          value={commMobile} 
+          onChange={(e) => setCommMobile(e.target.value)} 
+          className="w-full p-2 border rounded-lg text-sm bg-white" 
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-bold text-gray-700 mb-1">Role / Responsibility Description</label>
+        <input 
+          type="text" 
+          value={commRole} 
+          onChange={(e) => setCommRole(e.target.value)} 
+          className="w-full p-2 border rounded-lg text-sm bg-white" 
+        />
+      </div>
+      <div className="md:col-span-2">
+        <label className="block text-xs font-bold text-gray-700 mb-1">Photo</label>
+        <input 
+          type="file" 
+          accept="image/*" 
+          onChange={(e) => setCommPhoto(e.target.files[0])} 
+          className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" 
+        />
+      </div>
+      <div className="md:col-span-2">
+        <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-indigo-700 transition">
+          Add Committee Member
+        </button>
+      </div>
+    </form>
+           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      {committeelist.length === 0 ? (
+        <p className="text-gray-500 text-sm">No members found.</p>
+      ) : (
+        committeelist.map((item) => (
+          <div key={item._id || item.id} className="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img 
+                src={item.photo || item.image || 'https://via.placeholder.com/150'} 
+                alt={item.name} 
+                className="w-16 h-16 object-cover rounded-full border" 
+              />
+              <div>
+                <h4 className="font-bold text-gray-900">{item.name}</h4>
+                <p className="text-xs font-bold text-indigo-700">{item.position}</p>
+                <p className="text-xs text-gray-600 flex items-center gap-1 mt-0.5">
+                  <span>📞</span> {item.phone}
+                </p>
+                {item.responsibility && (
+                  <p className="text-xs text-gray-500 mt-0.5">{item.responsibility}</p>
+                )}
+              </div>
             </div>
+            <button 
+              onClick={() => handleDeleteCommittee(item._id || item.id)} 
+              className="bg-rose-100 text-rose-700 p-2 rounded hover:bg-rose-600 hover:text-white transition"
+              title="Delete Member"
+            >
+              🗑️
+            </button>
           </div>
-        )}
+        ))
+      )}
+    </div>
+  </div>
+)}
 
         {activeTab === 'messages' && (
           <div className="bg-white p-6 rounded-xl shadow-sm space-y-4">
