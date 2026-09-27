@@ -5,19 +5,11 @@ import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
-// Sabhi members ko ek sath fetch karne ke liye route
-router.get('/', async (req, res) => {
-  try {
-    const members = await CommitteeMember.find().sort({ order: 1 });
-    res.json(members);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
+// Saare members ya year-wise fetch karne ke liye getMembersByYear controller use karenge
+router.get('/', getMembersByYear);
 router.get('/year/:year', getMembersByYear);
 
-// 'photo' ki jagah 'image' kar diya hai taaki AdminDashboard ke FormData se match ho jaye
+// Naya member add karne ke liye
 router.post('/', protect, upload.any(), createMember);
 router.put('/:id', protect, upload.any(), updateMember);
 router.delete('/:id', protect, deleteMember);
