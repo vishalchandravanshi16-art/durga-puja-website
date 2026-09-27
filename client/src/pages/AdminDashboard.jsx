@@ -502,7 +502,7 @@ const handleAddCommittee = async (e) => {
           </div>
         )}
 
-       {activeTab === 'committee' && (
+      {activeTab === 'committee' && (
   <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
     <h2 className="text-xl font-bold text-indigo-800 flex items-center gap-2">Committee Management</h2>
     
@@ -537,10 +537,10 @@ const handleAddCommittee = async (e) => {
 
     {/* Committee List Grid */}
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-      {!Array.isArray(committeelist) || committeelist.length === 0 ? (
+      {!Array.isArray(committeeList) || committeeList.length === 0 ? (
         <p className="text-gray-500 text-sm">No members found.</p>
       ) : (
-        committeelist.map((item) => (
+        committeeList.map((item) => (
           <div key={item._id || item.id} className="border rounded-xl p-4 bg-white shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img 
