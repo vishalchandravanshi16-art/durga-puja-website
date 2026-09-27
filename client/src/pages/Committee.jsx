@@ -6,8 +6,15 @@ const Committee = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Edit Modal States
+  const [editingMember, setEditingMember] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editPosition, setEditPosition] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editResponsibility, setEditResponsibility] = useState('');
+  const [editPhoto, setEditPhoto] = useState(null);
+
   useEffect(() => {
-    // Check if admin is logged in via token
     const checkAdminStatus = () => {
       const token = localStorage.getItem('token');
       setIsAdmin(!!token);
@@ -16,7 +23,6 @@ const Committee = () => {
     checkAdminStatus();
     loadCommitteeMembers();
 
-    // Listen to storage changes for instant login/logout sync
     window.addEventListener('storage', checkAdminStatus);
     return () => {
       window.removeEventListener('storage', checkAdminStatus);
@@ -26,7 +32,6 @@ const Committee = () => {
   const loadCommitteeMembers = async () => {
     try {
       setLoading(true);
-      // Try fetching via fetchMembers service or direct API fallback
       let res;
       try {
         res = await fetchMembers();
@@ -66,8 +71,43 @@ const Committee = () => {
     }
   };
 
-  const handleEdit = (member) => {
-    alert(`Edit feature: आप ${member.name} को Admin Dashboard के Committee tab से मैनेज कर सकते हैं।`);
+  // Open Edit Modal with member details
+  const handleEditClick = (member) => {
+    setEditingMember(member);
+    setEditName(member.name || '');
+    setEditPosition(member.position || member.role || '');
+    setEditPhone(member.phone || '');
+    setEditResponsibility(member.responsibility || member.desc || '');
+    setEditPhoto(null);
+  };
+
+  // Handle Update Form Submit
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingMember) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('name', editName);
+      formData.append('position', editPosition);
+      formData.append('phone', editPhone);
+      formData.append('responsibility', editResponsibility);
+      if (editPhoto) {
+        formData.append('photo', editPhoto);
+        formData.append('image', editPhoto);
+      }
+
+      const res = await API.put(`/members/${editingMember._id || editingMember.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      alert("सदस्य सफलतापूर्वक अपडेट कर दिया गया!");
+      setEditingMember(null);
+      loadCommitteeMembers(); // Refresh list
+    } catch (err) {
+      console.error("Error updating member:", err);
+      alert("सदस्य अपडेट करने में समस्या आई।");
+    }
   };
 
   return (
@@ -168,11 +208,11 @@ const Committee = () => {
                         {member.phone || "मोबाइल उपलब्ध नहीं"}
                       </a>
 
-                      {/* Admin Delete & Edit Controls (Only visible when logged in) */}
+                      {/* Admin Delete & Edit Controls */}
                       {isAdmin && (
                         <div className="flex gap-2 w-full pt-1">
                           <button
-                            onClick={() => handleEdit(member)}
+                            onClick={() => handleEditClick(member)}
                             className="flex-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow"
                           >
                             Edit
@@ -194,6 +234,78 @@ const Committee = () => {
           </div>
         )}
       </div>
+
+      {/* --- EDIT MODAL POPUP --- */}
+      {editingMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-amber-500/50 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h2 className="text-xl font-bold text-amber-300 mb-4 text-center">सदस्य विवरण संपादित करें (Edit Member)</h2>
+            <form onSubmit={handleUpdateSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Member Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Position / Pad</label>
+                <input
+                  type="text"
+                  value={editPosition}
+                  onChange={(e) => setEditPosition(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Mobile Number</label>
+                <input
+                  type="text"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Responsibility</label>
+                <input
+                  type="text"
+                  value={editResponsibility}
+                  onChange={(e) => setEditResponsibility(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">New Photo (Optional)</label>
+                <input
+                  type="file"
+                  onChange={(e) => setEditPhoto(e.target.files[0])}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white text-xs"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-sm transition-all"
+                >
+                  Update
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingMember(null)}
+                  className="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg text-sm transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
